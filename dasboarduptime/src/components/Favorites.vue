@@ -28,6 +28,8 @@ export default {
         removeFavorite: function(event){
             let vm = this;
             let value = $(event.target).attr("data-id");
+            if(value === undefined)
+                value = $(event.target).parent().attr("data-id");
             vm.$emit('removeFavorite', value);
         }
     }
