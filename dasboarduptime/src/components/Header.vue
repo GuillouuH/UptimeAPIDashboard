@@ -99,9 +99,13 @@ export default {
         months:{
             get : function(){
                 let currentYear = parseInt(moment().format('YYYY'));
-                let year = [{year :currentYear-2, current:false, routeName:'History'}, {year :currentYear-1, current:false, routeName:'History'},{id:this.idAccount,year :currentYear, current:true, routeName:'Result'} ];
-                
-                return year;   
+                let year = [
+                  {year :currentYear-2, current:false, routeName:'History'},
+                  {year :currentYear-1, current:false, routeName:'History'},
+                  {id:this.idAccount,year :currentYear, current:true, routeName:'History'}
+                  ];
+
+                return year;
             }
         },
         selectAccount: {
@@ -115,15 +119,15 @@ export default {
         searchInTab (e) {
             var vm = this;
             if(e != null)
-                if (e.keyCode === 10 || e.keyCode === 13) 
+                if (e.keyCode === 10 || e.keyCode === 13)
                     e.preventDefault();
 
             vm.$emit('searchInTab', vm.search);
-        }, 
+        },
         downloadCsv (e){
             var vm = this;
             vm.$emit('downloadCsv');
-        }, 
+        },
         addFavorites (e) {
             let valToAdd = this.search;
             this.$emit('addFavorites', valToAdd);

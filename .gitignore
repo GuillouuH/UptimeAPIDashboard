@@ -2,10 +2,12 @@
 .env
 dashboarduptime/node_modules
 dashboarduptime/dist/*
-dashboarduptime/config/
+dashboarduptime/config/prod.env.js
 dashboarduptime/npm-debug.log*
 dashboarduptime/yarn-debug.log*
 dashboarduptime/yarn-error.log*
+uptime-api/.env
+
 
 # Editor directories and files
 .idea
@@ -14,3 +16,4 @@ dashboarduptime/yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+node_modules

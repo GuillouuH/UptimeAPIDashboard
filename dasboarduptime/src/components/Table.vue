@@ -17,8 +17,8 @@
                     <template v-if="data != ''">
                         <tr v-if="hasAverage == true" class="MoyenneHeaders" >
                             <th v-for="average in average" :key="average.id">{{average}}</th>
-                        </tr> 
-                    </template> 
+                        </tr>
+                    </template>
                 </thead>
                 <tbody v-if="processing">
                     <tr>
@@ -39,11 +39,12 @@
                                 <span v-else-if="result.ssl.ssl_monitored == true && result.ssl.ssl_expireDatetime-currenttimestamp <= 604800 && result.ssl.ssl_error == ''" class="fa fa-lock alert-ssl" data-toggle="tooltip" data-placement="top" :title="result.ssl.ssl_expireDatetime | getmonthexpire"></span>
                                 <span v-else-if="(result.ssl.ssl_monitored == true && (result.ssl.ssl_expireDatetime < currenttimestamp || result.ssl.ssl_error != ''))" class="fa fa-lock-open not-ssl"></span>
                                 <span v-if="result.status==2" class="fa fa-check-circle" aria-hidden="true"></span>
-                                <strong><router-link :to="{name:'Details', 
+                                <strong><router-link :to="{name:'Details',
                                     params:{
                                         id:result.id,
                                         from:$route,
                                         key:keyAccount,
+                                        year:date,
                                         date:date,
                                         search:search,
                                         idAccount:idAccount,
@@ -58,12 +59,13 @@
                                 <span v-else-if="result.ssl.ssl_monitored == true && result.ssl.ssl_expireDatetime-currenttimestamp <= 604800 && result.ssl.ssl_error == ''" class="fa fa-lock alert-ssl" data-toggle="tooltip" data-placement="top" :title="result.ssl.ssl_expireDatetime | getmonthexpire"></span>
                                 <span v-else-if="(result.ssl.ssl_monitored == true && (result.ssl.ssl_expireDatetime < currenttimestamp || result.ssl.ssl_error != ''))" class="fa fa-lock-open not-ssl"></span>
                                 <span v-if="result.status==2" class="fa fa-check-circle" aria-hidden="true"></span>
-                                <strong><router-link :to="{name:'Details', 
+                                <strong><router-link :to="{name:'Details',
                                     params:{
                                         id:result.id,
                                         from:$route,
                                         key:keyAccount,
                                         date:date,
+                                        year:date,
                                         search:search,
                                         idAccount:idAccount,
                                         interval:custom_interval,
@@ -77,17 +79,18 @@
                                 <span v-else-if="result.ssl.ssl_monitored == true && result.ssl.ssl_expireDatetime-currenttimestamp <= 604800 && result.ssl.ssl_error == ''" class="fa fa-lock alert-ssl" data-toggle="tooltip" data-placement="top" :title="result.ssl.ssl_expireDatetime | getmonthexpire"></span>
                                 <span v-else-if="(result.ssl.ssl_monitored == true && (result.ssl.ssl_expireDatetime < currenttimestamp || result.ssl.ssl_error != ''))" class="fa fa-lock-open not-ssl"></span>
                                 <span v-if="result.status==9" class="fa fa-exclamation-circle" aria-hidden="true"></span>
-                                <strong><router-link :to="{name:'Details', 
+                                <strong><router-link :to="{name:'Details',
                                     params:{
                                         id:result.id,
                                         from:$route,
                                         key:keyAccount,
                                         date:date,
+                                        year:date,
                                         search:search,
                                         idAccount:idAccount,
                                         interval:custom_interval,
                                         daysSelected:daysSelected
-                                    }   
+                                    }
                                 }">
                                 <span class="libellename">{{result.name}}</span><span class="far fa-chart-bar pt-1 float-right" aria-hidden="true"></span></router-link></strong>
                             </p>
@@ -96,12 +99,13 @@
                                 <span v-else-if="result.ssl.ssl_monitored == true && result.ssl.ssl_expireDatetime-currenttimestamp <= 604800 && result.ssl.ssl_error == ''" class="fa fa-lock alert-ssl" data-toggle="tooltip" data-placement="top" :title="result.ssl.ssl_expireDatetime | getmonthexpire"></span>
                                 <span v-else-if="(result.ssl.ssl_monitored == true && (result.ssl.ssl_expireDatetime < currenttimestamp || result.ssl.ssl_error != ''))" class="fa fa-lock-open not-ssl"></span>
                                 <span v-if="result.status==8" class="fa fa-times-circle" aria-hidden="true"></span>
-                                <strong><router-link :to="{name:'Details', 
+                                <strong><router-link :to="{name:'Details',
                                     params:{
                                         id:result.id,
                                         from:$route,
                                         key:keyAccount,
                                         date:date,
+                                        year:date,
                                         search:search,
                                         idAccount:idAccount,
                                         interval:custom_interval,
@@ -193,7 +197,7 @@ export default {
             if(this.hasSort){
                 vm.$emit('sortBy', name)
             }
-        }, 
+        },
         displayRow: function(index){
             let vm = this
             if(this.displayRow)

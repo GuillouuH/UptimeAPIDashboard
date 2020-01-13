@@ -15,7 +15,7 @@ export default new Router({
             component: Result
         },
         {
-            path: '/details/:id',
+            path: '/details/:id/:year',
             name: 'Details',
             component: Details,
             props: true,

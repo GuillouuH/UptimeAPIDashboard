@@ -8,13 +8,12 @@ import * as mongoose from "mongoose";
 import * as dotenv from "dotenv";
 
 dotenv.config();
-
 const MONGODB_USER = process.env.MONGODB_USER;
 const MONGODB_PWD = process.env.MONGODB_PWD;
-const MONGODB_SERVER = process.env.MONGODB_SERVER;
+const MONGODB_SERVER = process.env.MONGODB_SERVER || "127.0.0.1";
 const MONGODB_DB = process.env.MONGODB_DB;
-const MONGODB_PORT = process.env.MONGODB_PORT;
-const EXECUTE_CRON = process.env.EXECUTE_CRON;
+const MONGODB_PORT = process.env.MONGODB_PORT || 27017;
+const EXECUTE_CRON = process.env.EXECUTE_CRON || 0;
 
 class App {
 

@@ -7,8 +7,8 @@
                     <div class="col-lg-12">
                         <div class="row entete card-header">
                             <div class="col-md-12">
-                                <div class="title"> 
-                                    <h1  v-if="filter != ''" class="text-center">{{detail.name}} : Disponibilité globale : 
+                                <div class="title">
+                                    <h1  v-if="filter != ''" class="text-center">{{detail.name}} : Disponibilité globale :
                                         <small v-if="filter[0].ranges[0] == 0.000">nc</small>
                                         <small class="p-3 mb-2 bg-success" v-if="filter[0].ranges[0] > 99.9 || filter[0].ranges[0] == 100.000">{{filter[0].ranges[0] | formatNumber}} % </small>
                                         <small class="p-3 mb-2 bg-warning" v-else-if="filter[0].ranges[0] >99.6">{{filter[0].ranges[0] | formatNumber}} %</small>
@@ -18,7 +18,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="card-body">
                         <div class="row">
                             <div class="col-lg-12">
@@ -221,7 +221,7 @@
                                                     <td>PWA</td>
                                                     <td v-if="filter[0].lighthouse.lighthouse_pwa >= 90"><p class="success">{{filter[0].lighthouse.lighthouse_pwa}}</p></td>
                                                     <td v-else-if="filter[0].lighthouse.lighthouse_pwa >= 50 && filter[0].lighthouse.lighthouse_pwa < 90"><p class="alert">{{filter[0].lighthouse.lighthouse_pwa}}</p></td>
-                                                    <td v-else-if="filter[0].lighthouse.lighthouse_pwa < 50"><p class="danger">{{filter[0].lighthouse.lighthouse_pwa}}</p></td>                                                
+                                                    <td v-else-if="filter[0].lighthouse.lighthouse_pwa < 50"><p class="danger">{{filter[0].lighthouse.lighthouse_pwa}}</p></td>
                                                 </tr>
                                                 <tr>
                                                     <td>Date</td><td>{{filter[0].lighthouse.lighthouse_dateTime | convertTimestampInDate}}</td>
@@ -348,7 +348,7 @@ export default {
                         "site":[this.$route.params.id],
                         "ranges":vm.range,
                     };
-                }  
+                }
             }
             let url = process.env.urlAPI+'siteslogs';
             let results =  await vm.getUptimeRequest(data, url);
@@ -375,7 +375,7 @@ export default {
                     let longerLogDown = vm.searchForLongerLog(response.data[i].logs, 1);
                     let ranges = ((response.data[i].custom_uptime_ranges.replace(/\./g, ',')).split('-')).reverse();
                     let rangeW = ((response.data[i].custom_uptime_ranges).split('-')).reverse();
-                    
+
                     results.push({
                         "name":response.data[i].friendly_name,
                         "status":response.data[i].status,
@@ -412,7 +412,7 @@ export default {
                     reason = logs[i].reason;
                 }
             }
-            
+
             maxLogDown.push({"date":date, "hour":hour, "reason":reason,  "duration":this.convertSecondIntoTime(duration), "timestamp":duration});
             if(mode == 1)
                 return maxLogDown;
@@ -425,7 +425,7 @@ export default {
             let hours = moment.duration(second, 'seconds').hours();
             let minutes = moment.duration(second, 'seconds').minutes();
             let seconds = moment.duration(second, 'seconds').seconds();
-            
+
             if(days == "0" && hours == "0" && minutes == "0" )
                 time = seconds+"s";
             else if(days == "0" && hours == "0")
