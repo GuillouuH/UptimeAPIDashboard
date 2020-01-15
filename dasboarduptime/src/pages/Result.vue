@@ -238,6 +238,7 @@ export default {
         },
         searchInTab: function(value){
             var vm = this;
+
             var result = vm.results.filter(element => this.removeAccent(element.name.toUpperCase()).includes(this.removeAccent(value.toUpperCase())) || this.removeAccent(element.url.toUpperCase()).includes(this.removeAccent(value.toUpperCase())));
             vm.filter = result;
             vm.searchValue = value;
@@ -268,13 +269,13 @@ export default {
         },
 
         removeAccent : function(val){
-            var correctedString = val.replace(/[ÁÀÄÂ]/g, "A");
-            correctedString = val.replace(/[ÉÈËÊ]/g, "E");
-            correctedString = val.replace(/[ÍÌÏÎ]/g, "I");
-            correctedString = val.replace(/[ÓÒÖÔ]/g, "O");
-            correctedString = val.replace(/[ÚÙÜÛ]/g, "U");
+            val = val.replace(/[ÁÀÄÂ]/g, "A");
+            val = val.replace(/[ÉÈËÊ]/g, "E");
+            val = val.replace(/[ÍÌÏÎ]/g, "I");
+            val = val.replace(/[ÓÒÖÔ]/g, "O");
+            val = val.replace(/[ÚÙÜÛ]/g, "U");
 
-            return correctedString;
+            return val;
         }
     },
 }
