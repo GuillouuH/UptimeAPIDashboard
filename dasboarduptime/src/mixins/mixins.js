@@ -227,7 +227,7 @@ export default {
             }
 
             if(from === "result")
-                vm.average.push('','','', '');  
+                vm.average.push('','','', '', '');  
                 
             if(from === "dashboard") {
                 let totalAverage = 0;

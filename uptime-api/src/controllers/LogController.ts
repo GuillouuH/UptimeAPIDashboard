@@ -133,10 +133,6 @@ export class LogController{
                 if(lastlogSite.length > 0)
                     lastLog = lastlogSite[0];
                 
-                if(element._id == "5d39cf6fa7f30900062f4b96"){
-                    console.log(logsSite);
-                    console.log(lastLog);
-                }
                 if(logsSite.length === 0 && Object.entries(lastLog).length > 0  && lastLog.Type.logTypeId === 99){
                     let tmpLog = {
                         "site":lastLog.Site._id,

@@ -13,6 +13,7 @@
                             <th scope="col" @click.prevent="sortBy('cumulSeconde')">Cumule</th>
                             <th scope="col"></th>
                         </template>
+                            <th scope="col"></th>
                     </tr>
                     <template v-if="data != ''">
                         <tr v-if="hasAverage == true" class="MoyenneHeaders" >
@@ -132,13 +133,25 @@
                             <td class="">
                                 {{result.cumul}}
                             </td>
-                            <td class="actions">
+                            <td class="actions text-right">
                                 <div class="btn-group" role="group" aria-label="Basic example">
                                     <a tag="button" data-toggle="tooltip" data-placement="top" title="Voir le site"  class="btn btn-primary" target="_blank" :href="result.url"><span class="fas fa-external-link-alt" aria-hidden="true"></span></a>
-                                    <a v-if="result.status === 2 && canPauseAndStop === true" tag="button" data-toggle="tooltip" data-placement="top" title="Mettre en pause"  class="btn btn-warning" :data-id="result.id" target="_blank" @click="pauseMonitor"><span class="fas fa-pause" aria-hidden="true"></span></a>
-                                    <a v-if="result.status === 0 && canPauseAndStop === true" tag="button" data-toggle="tooltip" data-placement="top" title="Activer le monitoring"  class="btn btn-success" :data-id="result.id" target="_blank" @click="continueMonitor"><span class="fas fa-play" aria-hidden="true"></span></a>
                                 </div>
                             </td>
+                            <td>
+                                <div class="switch-toggle alert alert-secondary mb-0">
+                                    
+                                    <input :id="'pause'+index" :name="'startpause'+index" type="radio" :data-id="result.id" :checked="result.status === 2 && canPauseAndStop === true" @click="pauseMonitor">
+                                    <label :for="'pause'+index"><i :class="{ 'text-white': result.status === 2 && canPauseAndStop === true, 'fas fa-pause':true} " aria-hidden="true"></i></label>
+                                    
+                                    <input :id="'start'+index" :name="'startpause'+index" type="radio" :data-id="result.id" :checked="result.status === 0 && canPauseAndStop === true" @click="continueMonitor">
+                                    <label :for="'start'+index"><i :class="{ 'text-white': result.status === 0 && canPauseAndStop === true, 'fas fa-play':true} " aria-hidden="true"></i></label>
+                                    
+                                    <a class="btn btn-primary"></a>
+                                
+                                </div>
+                            </td>
+
                         </template>
                     </tr>
                 </tbody>
@@ -234,4 +247,7 @@ export default {
 .addFavorite {
     color: #ffc107;
 }
+
+
+
 </style>
