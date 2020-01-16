@@ -20,7 +20,7 @@ const EXECUTE_CRON = process.env.EXECUTE_CRON || 0;
 class App {
     public app: express.Application;
     public routePrv: Routes = new Routes();
-    public mongoUrl: string = `mongodb://${MONGODB_SERVER}:${MONGODB_PORT}/${MONGODB_DB}`;
+    public mongoUrl: string = `mongodb://${MONGODB_USER}:${MONGODB_PWD}@${MONGODB_SERVER}:${MONGODB_PORT}/${MONGODB_DB}`;
     public updateDataController = new UpdateDataController();
     constructor() {
         this.app = express();
