@@ -1,22 +1,29 @@
 <template>
-
     <div id="logform">
+      <div class="container pt-3">
+        <div class="row justify-content-sm-center">
+          <div class="col-sm-6 col-md-4">
+          <div v-if="error != ''" class="alert alert-danger" role="alert">
+            {{error}}
+          </div>
 
-      <div class="container h-100">
-        <div class="row h-100 justify-content-center align-items-center-start">
-          <form>
-            <div class="form-group">
-              <label for="userName">Nom d'utilisateur</label>
-              <input type="text" class="form-control" id="userName" aria-describedby="Utilisateur" placeholder="Nom d'utilisateur">
+            <div class="card border-info text-center">
+              <div class="card-header">
+                Connectez-cous pour continuer
+              </div>
+              <div class="card-body">
+                <form class="form-signin" @submit.prevent="handleConnexion">
+                  <input type="text" class="form-control mb-2" placeholder="Email" v-model="email" required autofocus>
+                  <input type="password" class="form-control mb-5" placeholder="Mot de passe" v-model="password" required>
+                  <button class="btn btn-lg btn-primary btn-block mb-4" type="submit">Connexion</button>
+                  <label class="checkbox float-left">
+                    <input type="checkbox" value="remember-me" v-model="rememberme">
+                      Se souvenir de moi
+                  </label>
+                </form>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="password">Mot de passe</label>
-              <input type="password" class="form-control" id="password" placeholder="Mot de passe">
-            </div>
-            <div class="col-12 text-center">
-              <button type="submit" class="btn btn-primary my-2 my-sm-0">Se connecter</button>
-            </div>
-          </form>   
+          </div>
         </div>
       </div>
 
@@ -26,13 +33,46 @@
 
 <script>
 
+import axios from 'axios'
+
 export default {
+  name: 'Login',
   data(){
     return{
-
+      email : localStorage.getItem('uptime-connexion-email'),
+      password : "",
+      rememberme : "",
+      error: "",
     }
   },
-  name: 'Login',
+  methods: {
+      handleConnexion (e) {
+          let vm = this;
+          let data = {
+            email : this.email,
+            password : this.password
+          }
+          let url = process.env.urlAPI+'userLogin';
+          axios.post(url, data).
+          then(function (resp) {
+              if(resp.data.success === 1){
+                  if(vm.rememberme){
+                    localStorage.setItem("uptime-connexion-email", vm.email);
+                  }
 
+                  localStorage.setItem("jwt-connexion", resp.data.token);
+                  if(vm.$route.params.nextUrl != null){
+                      vm.$router.push(vm.$route.params.nextUrl)
+                  }else{
+                    vm.$router.push('/')
+                  }
+              } else {
+                  vm.error = "L'identifiant ou le mot de passe n'est pas correct.";
+              }
+          });
+      }
+  }
 }
 </script>
+<style scoped>
+</style>

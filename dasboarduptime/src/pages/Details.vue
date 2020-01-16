@@ -368,7 +368,7 @@ export default {
             }
             let detail = Array();
             let url = process.env.urlAPI+'siteslogs';
-            axios.post(url, data).
+            axios.post(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
             then(function (response) {
                 for(var i in response.data){
                     let logDown;

@@ -69,6 +69,8 @@
                             </div>
                         </div>
                     </template>
+                    <button v-if="options.hasCsv == true" class="btn btn-outline-danger my-2 my-sm-0" type="" @click.prevent="logout">Déconnexion</button>
+
                 </div>
             </div>
         </nav>
@@ -131,6 +133,10 @@ export default {
         addFavorites (e) {
             let valToAdd = this.search;
             this.$emit('addFavorites', valToAdd);
+        },
+        logout (e){
+            localStorage.removeItem('jwt-connexion');
+            this.$router.push('/login')
         }
     }
 }

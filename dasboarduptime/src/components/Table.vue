@@ -132,8 +132,12 @@
                             <td class="">
                                 {{result.cumul}}
                             </td>
-                            <td class="url">
-                                <a tag="button" data-toggle="tooltip" data-placement="top" title="Voir le site"  class="btn btn-primary" target="_blank" :href="result.url"><span class="fas fa-external-link-alt" aria-hidden="true"></span></a>
+                            <td class="actions">
+                                <div class="btn-group" role="group" aria-label="Basic example">
+                                    <a tag="button" data-toggle="tooltip" data-placement="top" title="Voir le site"  class="btn btn-primary" target="_blank" :href="result.url"><span class="fas fa-external-link-alt" aria-hidden="true"></span></a>
+                                    <a v-if="result.status === 2 && canPauseAndStop === true" tag="button" data-toggle="tooltip" data-placement="top" title="Mettre en pause"  class="btn btn-warning" :data-id="result.id" target="_blank" @click="pauseMonitor"><span class="fas fa-pause" aria-hidden="true"></span></a>
+                                    <a v-if="result.status === 0 && canPauseAndStop === true" tag="button" data-toggle="tooltip" data-placement="top" title="Activer le monitoring"  class="btn btn-success" :data-id="result.id" target="_blank" @click="continueMonitor"><span class="fas fa-play" aria-hidden="true"></span></a>
+                                </div>
                             </td>
                         </template>
                     </tr>
@@ -156,6 +160,7 @@ export default {
     name : 'Table',
     data(){
         return{
+            canPauseAndStop: process.env.canPauseAndStop,
             sortKey: '',
             currenttimestamp:moment().format('X')
         }
@@ -202,6 +207,16 @@ export default {
             let vm = this
             if(this.displayRow)
                 vm.$emit('displayRow', index)
+        },
+        pauseMonitor: function(e){
+            e.preventDefault();
+            let id = e.currentTarget.getAttribute('data-id');
+            this.$emit('pauseMonitor', id)
+        },
+        continueMonitor: function(e){
+            e.preventDefault();
+            let id = e.currentTarget.getAttribute('data-id');
+            this.$emit('continueMonitor', id)
         }
     }
 }

@@ -1,15 +1,14 @@
 import * as mongoose from 'mongoose';
 import { Request, Response } from 'express';
-import { SiteSchema } from '../models/SiteModel';
-import { LogSchema } from '../models/LogModel';
+import { SiteSchema, ISite } from '../models/SiteModel';
+import { LogSchema, ILog } from '../models/LogModel';
 import { AccountTypeSchema } from '../models/AccountTypeModel';
 
 //import * as moment from 'moment/moment';
-import * as moment from 'moment-timezone';
-import { cpus } from 'os';
+import  moment from 'moment-timezone';
 
-const Log = mongoose.model('Log', LogSchema);
-const Site = mongoose.model('Sites', SiteSchema);
+const Log = mongoose.model<ILog>('Log', LogSchema);
+const Site = mongoose.model<ISite>('Sites', SiteSchema);
 const AccountType = mongoose.model('typeaccount', AccountTypeSchema);
 
 export class LogController{
@@ -34,7 +33,7 @@ export class LogController{
             if(err)
                 res.send(err);
 
-            let logArray = {};
+            let logArray:any = {};
             let goodLogs = Array();
             let duplicateLogs = Array();
             let duplicateLogsToKeep = Array();
@@ -57,7 +56,7 @@ export class LogController{
             });
             
             duplicateLogs.forEach(element => {
-                element = element.sort((a,b) => (a.duration > b.duration) ? 1 : (b.duration  > a.duration) ? -1 : 0);
+                element = element.sort((a:any,b:any) => (a.duration > b.duration) ? 1 : (b.duration  > a.duration) ? -1 : 0);
             })
             
             duplicateLogs.forEach(element => {
@@ -70,17 +69,17 @@ export class LogController{
                 }
             });
             //console.log(106082 - duplicateLogsToRemove.length)
-            Log.deleteMany({_id : { $in: duplicateLogsToRemove}}, (err, logs) => {
+            Log.deleteMany({_id : { $in: duplicateLogsToRemove}}, () => {
                 res.json({"message":"Delete done!"})
             });
         }).lean();
     }
 
     // Get logs for each Sites
-    public getLogsBySites = (req: Request, res: Response) => {
+    public getLogsBySites = async (req: Request, res: Response) => {
         const { site, ranges, custom_days_range = Array(), custom_interval = Array(), account=0} = req.body;
         let allRanges = ranges.split("-")
-        let rangesArray = allRanges.map(function(e) { 
+        let rangesArray = allRanges.map(function(e:any) { 
             e = e.split('_'); 
             return e;
         });
@@ -90,34 +89,30 @@ export class LogController{
         let requestSite = {}
         requestLogs  = {datetime: {$gte: parseInt(start), $lte:parseInt(end)}};
         if(Array.isArray(site)){
-            let siteArray = site.map(function(e) {
-                return mongoose.Types.ObjectId(e)
-            });
-            requestLogs  = {Site : { $in: siteArray}, datetime: {$gte: parseInt(start), $lte:parseInt(end)}}
-            requestSite = {_id : { $in: siteArray}}
+            requestLogs  = {Site : { $in: site}, datetime: {$gte: parseInt(start), $lte:parseInt(end)}}
+            requestSite = {_id : { $in: site}}
         }
         let Logs = Log.find(requestLogs)
-        .populate('Type')
+        .populate('Type')   
         .populate({
             path:"Site",
-            pcopulate : {
+            populate : {
                 path:"Account"
             }
         }).lean().exec();
         
         let TypeAccount = AccountType.find({}).lean().exec();
         let Sites =  Site.find(requestSite).populate('Account').lean().exec();
-        let allSites = Array();
-        let momentTime = parseInt(moment().tz('Europe/Paris').format('X'));
-        Promise.all([Logs, Sites, TypeAccount]).then(([logs, sites, typeaccount])=>{
+        let LastLogSite = await Log.find({datetime: {$lte:parseInt(start)}}).populate({path : 'Site'}).populate('Type').lean().exec();
+
+        let allSites = Array();        
+
+        await Promise.all([Logs, Sites, TypeAccount, LastLogSite]).then(async ([logs, sites, typeaccount, lastlogsite])=>{
             var logArray = Array();
-            logs.forEach(element => {
-                if(element.Site === null){
-                    console.log(element)
-                }
+            logs.forEach((element : any) => {
                 if([1, 2, 99].indexOf(element.Type.logTypeId) > -1) {
                     let tmpLog = {
-                        "site":element.Site.uptimeId,
+                        "site":element.Site._id,
                         "datetime":element.datetime,
                         "duration":element.duration,
                         "reason":{"code":element.code,"detail":element.detail},
@@ -126,11 +121,28 @@ export class LogController{
                     logArray.push(tmpLog)
                 }
             });
+
             if(account != 0)
-                sites = sites.filter(e => e.Account.Type == account)
-            sites.forEach(element => {
-                let logsSite = logArray.filter( e => e.site === element.uptimeId)
-                let uptime = [];
+                sites = sites.filter((e : any) => e.Account.Type == account)
+
+            sites.forEach(async (element : any) => {
+                let lastLog = [];
+                let logsSite = logArray.filter( e => e.site.toString() === element._id.toString() )
+                let lastlogSite = lastlogsite.filter(e => e.Site._id.toString()  === element._id.toString() );
+                if(lastlogSite.length > 0)
+                    lastLog = lastlogSite[0];
+                
+                if(logsSite.length === 0 && Object.entries(lastLog).length > 0  && lastLog.Type.logTypeId === 99){
+                    let tmpLog = {
+                        "site":lastLog.Site._id,
+                        "datetime":parseInt(start),
+                        "duration":lastLog.duration,
+                        "reason":{"code":lastLog.code,"detail":lastLog.detail},
+                        "type":lastLog.Type.logTypeId
+                    }
+                    logsSite = [tmpLog]
+                }
+                let uptime : any = [];
                 let allLogs = Array()
                 if(typeof ranges === "string"){
                     let rangeArray = ranges.split("-")
@@ -138,14 +150,14 @@ export class LogController{
                     logsSite.sort((a, b) => a.datetime - b.datetime);
                     rangeArray.forEach(e => {
                         let range = e.split("_")
-                        let durationLog = 0; 
+                        let durationLog : any = 0; 
                         if(parseInt(range[0]) < element.createDatetime){
                             range[0] = element.createDatetime;
                         }
                         let rangeDuration = this.getDuration(parseInt(range[0]), parseInt(range[1]), custom_days_range, custom_interval)
                         logsSite.forEach((el, idx, array) => {
                             if(el === logsSite[logsSite.length-1]){
-                                el.duration = moment().format("X") - el.datetime
+                                el.duration = parseInt(moment().format("X")) - el.datetime
                             } else {
                                 el.duration = logsSite[idx + 1].datetime - el.datetime
                             }
@@ -153,7 +165,7 @@ export class LogController{
                                 durationLog = null
                             } else {
                                 // Si le dernier log est un log de pause 
-                                if(el.datetime < parseInt(range[0]) && el.datetime + el.duration > parseInt(range[0]) && el.type === 99 && el == logsSite[logsSite.length-1]){
+                                if(el.datetime <= parseInt(range[0]) && el.datetime + el.duration >= parseInt(range[0]) && el.type === 99 && el == logsSite[logsSite.length-1]){
                                     durationLog = null;
                                 } else if(el.datetime < parseInt(range[0]) && el.datetime + el.duration > parseInt(range[0]) && el.type === 1){
                                     let duration = el.datetime + el.duration - parseInt(range[0]); 
@@ -183,7 +195,7 @@ export class LogController{
                 }
 
                 allLogs.sort((a, b) => b.datetime - a.datetime);
-                let accounttype = typeaccount.find(e => e._id.toString() === element.Account.Type)
+                let accounttype = typeaccount.find((e : any) => e._id.toString() === element.Account.Type)
                 let ssl = {
                     "ssl_monitored":element.ssl_monitored,
                     "ssl_issuer":element.ssl_issuer,
@@ -207,7 +219,7 @@ export class LogController{
                     "lighthouse_dateTime":element.lighthouse_dateTime
                 };
                 let siteArray = {
-                    "id":element.uptimeId,
+                    "id":element._id,
                     "moment": parseInt(moment().tz('Europe/Paris').format('X')),
                     "accounttype":accounttype,
                     "id_object":element._id,
@@ -224,6 +236,7 @@ export class LogController{
                     "screenshot":screenShot,
                     "lighthouse":lighthouse
                 }
+
                 allSites.push(siteArray);
             })
             allSites.sort((a,b) => ((a.friendly_name).toUpperCase() > (b.friendly_name).toUpperCase()) ? 1 : (((b.friendly_name).toUpperCase() > (a.friendly_name).toUpperCase()) ? -1 : 0));
@@ -320,4 +333,3 @@ export class LogController{
         return total
     }
 }
-

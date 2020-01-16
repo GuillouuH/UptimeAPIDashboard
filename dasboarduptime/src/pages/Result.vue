@@ -4,7 +4,7 @@
         <Favorites @removeFavorite="removeFavorite" v-if="favorites != ''" class="container favorites-cp mb-5" @searchInTab="searchInTab" :favorites="favorites"></Favorites>
         <PlageHoraire :options="optionsPlageHoraire" @searchWithHoraire="searchWithHoraire" :custominterval="custom_interval" :startDate="startDate" :endDate="currentDate" :limitStart="limitStart" :limitEnd="limitEnd"></PlageHoraire>
         <div class="container table-year">
-            <Table @sortBy="sortBy" @displayRow="displayRow" :months="months" :data="filter" :average="average" :date="date" :search="search" :idAccount="idAccount" :custom_interval="custom_interval" :daysSelected="daysSelected" :hasSort="true" :hasDisplayRow="true" :hasAverage="true" :hasIndispoInfo="true" :processing="processing"></Table>
+            <Table @sortBy="sortBy" @pauseMonitor="pauseMonitor" @continueMonitor="continueMonitor" @displayRow="displayRow" :months="months" :data="filter" :average="average" :date="date" :search="search" :idAccount="idAccount" :custom_interval="custom_interval" :daysSelected="daysSelected" :hasSort="true" :hasDisplayRow="true" :hasAverage="true" :hasIndispoInfo="true" :processing="processing"></Table>
         </div>
         <nav class="navbar fixed-bottom navbar-expand-lg navbar-dark bg-dark">
             <a href="#" class="navbar-brand">Réal. Actigraph</a>
@@ -75,7 +75,8 @@ export default {
         getFavorite: function(){
             let vm = this;
             let url = process.env.urlAPI+'favorites';
-            axios.get(url).
+            vm.favorites = [];
+            axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
             then(function (response) {
                 vm.favorites = response.data;
             });
@@ -252,7 +253,7 @@ export default {
             if (index > -1) {
                 let data = {"id":val};
                 let url = process.env.urlAPI+'favorites';
-                axios.delete(url, {data: data}).
+                axios.delete(url, {data: data}, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
                 then(function (response) {
                     vm.favorites.splice(index, 1);
                 });
@@ -262,9 +263,34 @@ export default {
             let vm = this
             let data = {"name":val};
             let url = process.env.urlAPI+'favorites';
-            axios.post(url, data).
+            axios.post(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
             then(function (response) {
                 vm.favorites.push(response.data)
+            });
+        },
+
+        pauseMonitor: function(id){
+            let vm = this;
+            let url = process.env.urlAPI+'pauseSite';
+            let siteConcerned = vm.filter.find(e => e.id === id);
+            axios.post(url, {id:id}, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+            then(function (resp) {
+                if(resp.data.success === 1)
+                    siteConcerned.status = 0;
+                
+            });
+        },
+
+        continueMonitor: function(id){
+            let vm = this;
+            let url = process.env.urlAPI+'continueSite';
+            let siteConcerned = vm.filter.find(e => e.id === id);
+            siteConcerned.status = 0;
+            
+            axios.post(url, {id:id}, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+            then(function (resp) {
+                if(resp.data.success === 1)
+                    siteConcerned.status = 2;
             });
         },
 

@@ -2,7 +2,7 @@ import * as mongoose from 'mongoose';
 import { LogTypeSchema } from '../models/LogTypeModel';
 import { Request, Response } from 'express';
 
-const LogType = mongoose.model('LogType', LogTypeSchema);
+const LogType = mongoose.model('LogTypes', LogTypeSchema);
 
 export class LogTypeController{
     public addLogType (req: Request, res: Response) {                

@@ -270,7 +270,7 @@ export default {
 
                 let url = process.env.urlAPI+'siteslogs';
                 let downsTmp = {}
-                await axios.post(url, data).
+                await axios.post(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
                 then(function (response) {
                     vm.incidents = 0;
                     vm.downs = [];

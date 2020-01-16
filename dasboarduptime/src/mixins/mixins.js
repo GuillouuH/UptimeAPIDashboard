@@ -21,6 +21,7 @@ export default {
         getRange: function(){
             let months = Array()
             let year = moment().format('YYYY')
+            this.currentDate = moment().format('X')
             if("year" in this.$route.params && parseInt(year) != this.$route.params.year){
                 this.date = this.$route.params.year;
                 this.currentDate = moment(this.$route.params.year, 'YYYY').endOf('year').format('X');
@@ -126,9 +127,10 @@ export default {
         getUptimeRequest: async function(data, url){
             let vm = this;
             var results = [];
-            await axios.post(url, data).
+            await axios.post(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
             then(function (response) {
                 var monitors = response.data;
+                if(monitors.length > 0)
                 for(var i in monitors){
                     var logs = monitors[i].logs;
                     const reducer = (accumulator, currentValue) => accumulator + currentValue;

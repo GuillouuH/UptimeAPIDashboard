@@ -1,30 +1,30 @@
 import * as mongoose from 'mongoose';
 import { Request, Response } from 'express';
-import { SiteSchema } from '../models/SiteModel';
-import { AccountSchema } from '../models/AccountModel';
-import { LogTypeSchema } from '../models/LogTypeModel';
-import { LogSchema } from '../models/LogModel';
+import { SiteSchema, ISite} from '../models/SiteModel';
+import { AccountSchema, IAccount } from '../models/AccountModel';
+import { LogTypeSchema, ILogType } from '../models/LogTypeModel';
+import { LogSchema, ILog } from '../models/LogModel';
 
 import axios from 'axios';
-import * as moment from 'moment/moment';
+import moment from "moment"
 
-const Site = mongoose.model('Sites', SiteSchema);
-const Account = mongoose.model('Accounts', AccountSchema);
-const LogType = mongoose.model('LogType', LogTypeSchema);
-const Log = mongoose.model('Log', LogSchema);
+const Site = mongoose.model<ISite>('Sites', SiteSchema, 'Sites');
+const Account = mongoose.model<IAccount>('Accounts', AccountSchema, 'Accounts');
+const LogType = mongoose.model<ILogType>('LogType', LogTypeSchema, 'LogType');
+const Log = mongoose.model<ILog>('Log', LogSchema, 'Log');
 
 export class UpdateDataController{
 
-    uptimeRequest = async (url, data) => {
+    uptimeRequest = async (url : any, data : any) => {
         let resp = await axios.post(url, data);
         return resp.data;
     }
 
-    getUptimeData = async (accounts, lastlog) => {
+    getUptimeData = async (accounts : any, lastlog: any) => {
         let results = [];
         let url = 'https://api.uptimerobot.com/v2/getMonitors';
         for(var i = 0; i<accounts.length; i++){
-            let data = {"api_key":accounts[i].apiKey, "logs":1};
+            let data = {"api_key":accounts[i].apiKey, "logs":1, "logs_start_date":null};
             if(lastlog != "")
                 data["logs_start_date"] = lastlog;
             let tmpResult = await this.uptimeRequest(url, data);
@@ -33,7 +33,7 @@ export class UpdateDataController{
             if(tmpResult.pagination.limit < tmpResult.pagination.total){
                 let offset = tmpResult.pagination.limit;
                 while(offset < tmpResult.pagination.total){
-                    let data = {"api_key":accounts[i].apiKey, "offset":offset, "logs":1, "logs_end_date": moment().format('X')};
+                    let data = {"api_key":accounts[i].apiKey, "offset":offset, "logs":1, "logs_end_date": moment().format('X'), "logs_start_date":null};
                     if(lastlog != "")
                         data["logs_start_date"] = lastlog + 1;
                     tmpResult = await this.uptimeRequest(url, data);
@@ -57,10 +57,10 @@ export class UpdateDataController{
         let newLogsAdd = Array();
         let result = {};
         await Promise.all([Accounts, SitePromises, LogsSave, LastLogSites, Logtype]).then(async ([accounts, sites, logsSave, lastlogsites, logtype]) => {
-            let firstLog = lastlogsites.lastlog;
-            let allDownDate = [];
-            if(sites.length > 0){
-                sites.forEach(element => {
+            let firstLog = lastlogsites!.lastlog;
+            let allDownDate : any = [];
+            if(sites!.length > 0){
+                sites!.forEach(element => {
                     if(element.status === 9){
                         allDownDate.push(element.lastlog)
                     }
@@ -72,15 +72,12 @@ export class UpdateDataController{
             let uptimeData = await vm.getUptimeData(accounts, firstLog)
             uptimeData.forEach(element => {
                 let AccountId = element.acountId;
-                element.forEach(element => {
+                element.forEach((element: any) => {
                     let isNewSite = false
-                    let newSite 
-                    let siteConcerned = sites.find(e => e.uptimeId === element.id);
+                    let newSite : any;
+                    let siteConcerned = sites!.find(e => e.uptimeId === element.id);
                     var logs = element.logs
                     let lastlog = 0;
-                    if(siteConcerned !== undefined){
-                        lastlog = siteConcerned.lastlog;
-                    }
                     if(logs.length > 0){
                         lastlog = logs[0].datetime
                     }
@@ -92,46 +89,41 @@ export class UpdateDataController{
                             "createDatetime":element.create_datetime,
                             "Account":AccountId,
                             "status":element.status,
-                            "lastlog":lastlog,
-                            "monitor":true
+                            "lastlog":lastlog
                         }
                         newSiteAdd.push(site)
                         newSite = new Site(site);
                         isNewSite = true
                         newSite.save();
                     } else {
-                        if(siteConcerned.monitor === true){
-                            Site.findOneAndUpdate({_id:siteConcerned._id}, {$set:{ "name": element.friendly_name, "status":element.status, "lastlog":lastlog, "url":element.url}}).exec();
-                        }
+                        Site.findOneAndUpdate({_id:siteConcerned._id}, {$set:{ "name": element.friendly_name, "status":element.status, "lastlog":lastlog}}).exec();
                     }
                     if(logs.length > 0){
-                        logs.forEach(logelement => {
+                        logs.forEach((logelement: any) => {
                             var siteConcernedId = 0
                             if(isNewSite){
                                 siteConcernedId = newSite._id;
                             }else{
-                                siteConcerned = sites.find(x => x.uptimeId === element.id);
-                                siteConcernedId = siteConcerned._id;    
+                                siteConcerned = sites!.find(x => x.uptimeId === element.id);
+                                siteConcernedId = siteConcerned!._id;    
                             }
-                            var logtypeConcerned = logtype.find(x=> x.logTypeId === logelement.type)
+                            var logtypeConcerned = logtype!.find(x=> x.logTypeId === logelement.type)
                             var logtosave = {
                                 "Site":siteConcernedId,
-                                "Type":logtypeConcerned._id,
+                                "Type":logtypeConcerned!._id,
                                 "datetime":logelement.datetime,
                                 "duration":logelement.duration,
                                 "code":logelement.reason.code,
                                 "detail":logelement.reason.detail
                             }
                             if(!isNewSite){
-                                if(siteConcerned.monitor === true) {
-                                    let logConcerned = logsSave.find(e => e.datetime === logtosave.datetime && e.Site == siteConcernedId.toString())
-                                    if(logConcerned !== undefined) {
-                                        Log.findOneAndUpdate({_id:logConcerned._id.toString()}, { "datetime": logtosave.datetime, "duration": logtosave.duration}).exec();    
-                                    } else {
-                                        newLogsAdd.push(logtosave)
-                                        let log = new Log(logtosave);
-                                        log.save();
-                                    }
+                                let logConcerned = logsSave!.find((e: any) => e.datetime === logtosave.datetime && e.Site == siteConcernedId.toString())
+                                if(logConcerned !== undefined) {
+                                    Log.findOneAndUpdate({_id:logConcerned._id.toString()}, { "datetime": logtosave.datetime, "duration": logtosave.duration}).exec();    
+                                } else {
+                                    newLogsAdd.push(logtosave)
+                                    let log = new Log(logtosave);
+                                    log.save();
                                 }
                             } else {
                                 newLogsAdd.push(logtosave)

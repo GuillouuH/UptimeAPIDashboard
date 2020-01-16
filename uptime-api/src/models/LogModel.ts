@@ -2,6 +2,16 @@ import * as mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
 
+
+export interface ILog extends mongoose.Document {
+    Site: string;
+    Type: string;
+    datetime:number;
+    duration:number;
+    code:number;
+    detail: number;
+}
+
 export const LogSchema = new Schema({
     Site: { 
         type: mongoose.Schema.Types.ObjectId, 
@@ -9,7 +19,7 @@ export const LogSchema = new Schema({
     },
     Type: {
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'LogType'
+        ref: 'LogTypes'
     },
     datetime: {
         type: Number,

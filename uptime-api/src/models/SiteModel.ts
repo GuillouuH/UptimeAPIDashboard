@@ -1,7 +1,32 @@
 import * as mongoose from 'mongoose';
-import { LogSchema } from './LogModel';
 
 const Schema = mongoose.Schema;
+
+export interface ISite extends mongoose.Document {
+    name: string;
+    uptimeId: number;
+    url: string;
+    createDatetime: number;
+    Account:number;
+    status: number;
+    lastlog: number;
+    ssl_monitored: boolean;
+    ssl_issuer: string;
+    ssl_subject: string;
+    ssl_algo: string;
+    ssl_expireDatetime: number;
+    ssl_error: string;
+    screenshot_url: string;
+    screenshot_dateTime: number;
+    screenshot_error: string;
+    lighthouse_url: string;
+    lighthouse_performance: number;
+    lighthouse_accessibility: number;
+    lighthouse_bestPractices: number;
+    lighthouse_seo: number;
+    lighthouse_pwa: number;
+    lighthouse_dateTime: number;
+}
 
 export const SiteSchema = new Schema({
     name: {
@@ -10,7 +35,6 @@ export const SiteSchema = new Schema({
     },
     uptimeId : {
         type : Number,
-        required: 'Enter an uptimeId'
     },
     url : {
         type: String,
@@ -28,13 +52,8 @@ export const SiteSchema = new Schema({
         type: Number,
         required: 'Enter a status'
     },
-    monitor: { 
-        type: Boolean,
-        required: 'Enter a status'
-    },
     lastlog: { 
         type: Number,
-        required: 'Enter a lastlog'
     },
     ssl_monitored: {
         type: Boolean,
@@ -85,3 +104,4 @@ export const SiteSchema = new Schema({
         type: Number,
     }
 });
+
