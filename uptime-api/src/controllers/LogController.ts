@@ -103,7 +103,7 @@ export class LogController{
         
         let TypeAccount = AccountType.find({}).lean().exec();
         let Sites =  Site.find(requestSite).populate('Account').lean().exec();
-        let LastLogSite = await Log.find({datetime: {$lte:parseInt(start)}}).populate({path : 'Site'}).populate('Type').lean().exec();
+        let LastLogSite = await Log.find({datetime: {$lte:parseInt(start)}}, {datetime:-1}).populate({path : 'Site'}).populate('Type').lean().exec();
 
         let allSites = Array();        
 
@@ -129,9 +129,14 @@ export class LogController{
                 let lastLog = [];
                 let logsSite = logArray.filter( e => e.site.toString() === element._id.toString() )
                 let lastlogSite = lastlogsite.filter(e => e.Site._id.toString()  === element._id.toString() );
+                lastlogSite.sort((a, b) => b.datetime - a.datetime);
                 if(lastlogSite.length > 0)
                     lastLog = lastlogSite[0];
                 
+                if(element._id == "5d39cf6fa7f30900062f4b96"){
+                    console.log(logsSite);
+                    console.log(lastLog);
+                }
                 if(logsSite.length === 0 && Object.entries(lastLog).length > 0  && lastLog.Type.logTypeId === 99){
                     let tmpLog = {
                         "site":lastLog.Site._id,
