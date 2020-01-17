@@ -9,7 +9,7 @@
 
             <div class="card border-info text-center">
               <div class="card-header">
-                Connectez-vous pour continuer
+                Se connecter
               </div>
               <div class="card-body">
                 <form class="form-signin" @submit.prevent="handleConnexion">
