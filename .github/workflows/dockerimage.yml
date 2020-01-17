@@ -17,21 +17,21 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Build uptime-api Docker image
-      run: cd uptime-api && docker build . --file Dockerfile --tag registry.cloud.actigraph.com/uptime-api:latest-$(git rev-parse --short "$GITHUB_SHA")  && cd ..
+      run: cd uptime-api && docker build . --file Dockerfile --tag registry.cloud.actigraph.com/uptime-api:latest-${GITHUB_SHA::8}  && cd ..
     - name: Publish uptime-api Docker image
-      run: docker push registry.cloud.actigraph.com/uptime-api:latest-$(git rev-parse --short "$GITHUB_SHA")
+      run: docker push registry.cloud.actigraph.com/uptime-api:latest-${GITHUB_SHA::8}
       if: github.ref == 'refs/heads/master'
     - name: Redeploy uptime-api main service
       uses: joelwmale/webhook-action@1.0.0
       if: github.ref == 'refs/heads/master'
       env:
-        WEBHOOK_URL: ${{ secrets.PORTAINER_UPTIMEAPI_MAIN_WEBHOOK }}?tag=latest-$(git rev-parse --short "$GITHUB_SHA")
+        WEBHOOK_URL: ${{ secrets.PORTAINER_UPTIMEAPI_MAIN_WEBHOOK }}?tag=latest-${GITHUB_SHA::8}
         data: "{'todo': '1'}"
     - name: Redeploy uptime-api remote service
       uses: joelwmale/webhook-action@1.0.0
       if: github.ref == 'refs/heads/master'
       env:
-        WEBHOOK_URL: ${{ secrets.PORTAINER_UPTIMEAPI_REMOTE_WEBHOOK }}?tag=latest-$(git rev-parse --short "$GITHUB_SHA")
+        WEBHOOK_URL: ${{ secrets.PORTAINER_UPTIMEAPI_REMOTE_WEBHOOK }}?tag=latest-${GITHUB_SHA::8}
         data: "{'todo': '1'}"
 
   dashboard:
@@ -45,21 +45,21 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Build dasboard Docker main image
-      run: cd dasboarduptime && docker build . --build-arg api_uptime_url=${{ secrets.UPTIMEAPI_MAIN_URL }} --file Dockerfile --tag registry.cloud.actigraph.com/uptime-dashboard:main-$(git rev-parse --short "$GITHUB_SHA") && cd ..
+      run: cd dasboarduptime && docker build . --build-arg api_uptime_url=${{ secrets.UPTIMEAPI_MAIN_URL }} --file Dockerfile --tag registry.cloud.actigraph.com/uptime-dashboard:main-${GITHUB_SHA::8} && cd ..
     - name: Build dasboard Docker remote image
-      run: cd dasboarduptime && docker build . --build-arg api_uptime_url=${{ secrets.UPTIMEAPI_REMOTE_URL }} --file Dockerfile --tag registry.cloud.actigraph.com/uptime-dashboard:remote-$(git rev-parse --short "$GITHUB_SHA") && cd ..
+      run: cd dasboarduptime && docker build . --build-arg api_uptime_url=${{ secrets.UPTIMEAPI_REMOTE_URL }} --file Dockerfile --tag registry.cloud.actigraph.com/uptime-dashboard:remote-${GITHUB_SHA::8} && cd ..
     - name: Publish dasboard Docker image
-      run: docker push registry.cloud.actigraph.com/uptime-dashboard:remote-$(git rev-parse --short "$GITHUB_SHA") && docker push registry.cloud.actigraph.com/uptime-dashboard:main-$(git rev-parse --short "$GITHUB_SHA")
+      run: docker push registry.cloud.actigraph.com/uptime-dashboard:remote-${GITHUB_SHA::8} && docker push registry.cloud.actigraph.com/uptime-dashboard:main-${GITHUB_SHA::8}
       if: github.ref == 'refs/heads/master'
     - name: Redeploy dasboard main service
       uses: joelwmale/webhook-action@1.0.0
       if: github.ref == 'refs/heads/master'
       env:
-        WEBHOOK_URL: ${{ secrets.PORTAINER_DASHBOARDAPI_MAIN_WEBHOOK }}?tag=main-$(git rev-parse --short "$GITHUB_SHA")
+        WEBHOOK_URL: ${{ secrets.PORTAINER_DASHBOARDAPI_MAIN_WEBHOOK }}?tag=main-${GITHUB_SHA::8}
         data: "{'todo': '1'}"
     - name: Redeploy dasboard remote service
       uses: joelwmale/webhook-action@1.0.0
       if: github.ref == 'refs/heads/master'
       env:
-        WEBHOOK_URL: ${{ secrets.PORTAINER_DASHBOARDAPI_REMOTE_WEBHOOK }}?tag=remote-$(git rev-parse --short "$GITHUB_SHA")
+        WEBHOOK_URL: ${{ secrets.PORTAINER_DASHBOARDAPI_REMOTE_WEBHOOK }}?tag=remote-${GITHUB_SHA::8}
         data: "{'todo': '1'}"
