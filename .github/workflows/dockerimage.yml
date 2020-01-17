@@ -22,17 +22,15 @@ jobs:
       run: docker push registry.cloud.actigraph.com/uptime-api:latest-${GITHUB_SHA::8}
       if: github.ref == 'refs/heads/master'
     - name: Redeploy uptime-api main service
-      uses: joelwmale/webhook-action@1.0.0
+      uses: wei/curl@v1.1.1
       if: github.ref == 'refs/heads/master'
-      env:
-        WEBHOOK_URL: ${{ secrets.PORTAINER_UPTIMEAPI_MAIN_WEBHOOK }}?tag=latest-${GITHUB_SHA::8}
-        data: "{'todo': '1'}"
+      with:
+        args: -X POST ${{ secrets.PORTAINER_UPTIMEAPI_MAIN_WEBHOOK }}?tag=latest-${GITHUB_SHA::8}
     - name: Redeploy uptime-api remote service
-      uses: joelwmale/webhook-action@1.0.0
+      uses: wei/curl@v1.1.1
       if: github.ref == 'refs/heads/master'
-      env:
-        WEBHOOK_URL: ${{ secrets.PORTAINER_UPTIMEAPI_REMOTE_WEBHOOK }}?tag=latest-${GITHUB_SHA::8}
-        data: "{'todo': '1'}"
+      with:
+        args: -X POST ${{ secrets.PORTAINER_UPTIMEAPI_REMOTE_WEBHOOK }}?tag=latest-${GITHUB_SHA::8}
 
   dashboard:
     runs-on: ubuntu-latest
@@ -52,14 +50,12 @@ jobs:
       run: docker push registry.cloud.actigraph.com/uptime-dashboard:remote-${GITHUB_SHA::8} && docker push registry.cloud.actigraph.com/uptime-dashboard:main-${GITHUB_SHA::8}
       if: github.ref == 'refs/heads/master'
     - name: Redeploy dasboard main service
-      uses: joelwmale/webhook-action@1.0.0
+      uses: wei/curl@v1.1.1
       if: github.ref == 'refs/heads/master'
-      env:
-        WEBHOOK_URL: ${{ secrets.PORTAINER_DASHBOARDAPI_MAIN_WEBHOOK }}?tag=main-${GITHUB_SHA::8}
-        data: "{'todo': '1'}"
+      with:
+        args: -X POST ${{ secrets.PORTAINER_DASHBOARDAPI_MAIN_WEBHOOK }}?tag=latest-${GITHUB_SHA::8}
     - name: Redeploy dasboard remote service
-      uses: joelwmale/webhook-action@1.0.0
+      uses: wei/curl@v1.1.1
       if: github.ref == 'refs/heads/master'
-      env:
-        WEBHOOK_URL: ${{ secrets.PORTAINER_DASHBOARDAPI_REMOTE_WEBHOOK }}?tag=remote-${GITHUB_SHA::8}
-        data: "{'todo': '1'}"
+      with:
+        args: -X POST ${{ secrets.PORTAINER_DASHBOARDAPI_REMOTE_WEBHOOK }}?tag=latest-${GITHUB_SHA::8}
