@@ -10,25 +10,36 @@ const User = mongoose.model<IUser>('Users', UserSchema);
 
 export async function AuthenticateUser(req:any, res:any, next:any) { 
     let token = req.header("user_token");
-
-
-    if (!token) return res.status(401).json({ message: "Authentification impossible" });
-
-    try {
-        let decoded:any = jwt.verify(token, JWT_SECRET_KEY!);
-        let userMap = await User.findById(decoded.user.id);
-        req.user = userMap;
-        if(userMap === null)
+    let apitoken = req.header("api_token")
+    if (!token && !apitoken) return res.status(401).json({ message: "Authentification impossible" });
+    
+    if(token) {
+        try {
+            let decoded:any = jwt.verify(token, JWT_SECRET_KEY!);
+            let userMap = await User.findById(decoded.user.id);
+            if(userMap === null)
+                res.status(401).json({ message: "Authentification impossible" });
+            else {
+                req.user = userMap;
+                next();
+            }
+        } catch (e) {
             res.status(401).json({ message: "Authentification impossible" });
-        else
-            next();
-    } catch (e) {
-        let userMap = await User.findOne({"apiToken":token});
-        if(userMap === null)
+        }
+    }
+
+    if(apitoken){
+        try {
+            let userMapApiToken = await User.findOne({"apiToken":apitoken});
+            if(userMapApiToken === null)
+                res.status(401).json({ message: "Authentification impossible" });
+            else {
+                req.user = userMapApiToken;
+                next();
+            }
+        } catch (e) {
             res.status(401).json({ message: "Authentification impossible" });
-        else {
-            req.user = userMap;
-            next();
+
         }
     }
 }

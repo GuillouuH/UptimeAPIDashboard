@@ -68,7 +68,6 @@ const router =  new Router({
 })
 
 router.beforeEach((to, from, next) => {
-    let secretKey = process.env.secretKey
     if(to.matched.some(record => record.meta.requiresAuth)) {
         if (localStorage.getItem('jwt-connexion') == null) {
             next({
