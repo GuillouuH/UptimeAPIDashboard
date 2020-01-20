@@ -14,7 +14,7 @@ export function AuthenticateUser(req:any, res:any, next:any) {
         req.user = decoded.user;
         next();
     } catch (e) {
-        res.status(500).send({ message: "Invalid Token" });
+        res.status(401).json({ message: "Authentification impossible" });
     }
 }
 
