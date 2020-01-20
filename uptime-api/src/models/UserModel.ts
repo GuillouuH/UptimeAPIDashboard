@@ -25,5 +25,8 @@ export const UserSchema = new Schema({
         type: Date,
         required: 'Enter an account createdAt',
         default: Date.now()
+    },
+    apiToken: {
+        type: String
     }
 });
