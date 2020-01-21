@@ -142,13 +142,13 @@
                                 <div class="switch-toggle alert alert-secondary mb-0">
                                     
                                     <input :id="'pause'+index" :name="'startpause'+index" type="radio" :data-id="result.id" :checked="result.status === 2 && canPauseAndStop === true" @click="continueMonitor">
-                                    <label :for="'pause'+index"><i :class="{ 'text-white': result.status === 2 && canPauseAndStop === true, 'fas fa-play':true} " aria-hidden="true"></i></label>
+                                    <label :for="'pause'+index"><i :class="{ 'text-white': result.status != 0 && canPauseAndStop === true, 'fas fa-play':true} " aria-hidden="true"></i></label>
                                     
                                     <input :id="'start'+index" :name="'startpause'+index" type="radio" :data-id="result.id" :checked="result.status === 0 && canPauseAndStop === true" @click="pauseMonitor">
                                     <label :for="'start'+index"><i :class="{ 'text-white': result.status === 0 && canPauseAndStop === true, 'fas fa-pause':true} " aria-hidden="true"></i></label>
                                     
                                     <a v-if="result.status === 0 && canPauseAndStop" class="btn btn-secondary"></a>
-                                    <a v-if="result.status === 2 && canPauseAndStop" class="btn btn-success"></a>
+                                    <a v-if="result.status != 0 && canPauseAndStop" class="btn btn-success"></a>
                                 
                                 </div>
                             </td>
