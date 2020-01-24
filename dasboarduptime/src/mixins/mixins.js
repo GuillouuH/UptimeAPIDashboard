@@ -133,6 +133,7 @@ export default {
                 if(monitors.length > 0)
                 for(var i in monitors){
                     var logs = monitors[i].logs;
+                    var logscount = logs.length;
                     const reducer = (accumulator, currentValue) => accumulator + currentValue;
                     var logsDuration = Array();
                     for(var j in logs)
@@ -179,6 +180,7 @@ export default {
                         "ranges": ranges.map(Number),
                         "cumul":cumul,
                         "cumulSeconde":secondeCumul,
+                        "logscount":logscount,
                         "longerLogDown":longerLogDown,
                         "timestampLogdown": longerLogDown[0]["timestamp"],
                         "logs":vm.allLogs,
@@ -227,7 +229,7 @@ export default {
             }
 
             if(from === "result")
-                vm.average.push('','','', '', '');  
+                vm.average.push('','','', '');  
                 
             if(from === "dashboard") {
                 let totalAverage = 0;

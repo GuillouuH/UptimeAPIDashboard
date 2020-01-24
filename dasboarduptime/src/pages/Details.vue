@@ -352,7 +352,6 @@ export default {
             }
             let url = process.env.urlAPI+'siteslogs';
             let results =  await vm.getUptimeRequest(data, url);
-            console.log(results);
             return results;
         },
         getDataUptimeWeek: async function(){

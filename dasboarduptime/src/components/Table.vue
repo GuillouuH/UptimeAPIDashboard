@@ -8,8 +8,7 @@
                         <th scope="col" @click.prevent="sortBy(0)">Dispo. globale</th>
                         <th scope="col" v-for="(month, index) in months" :key="month.id" @click.prevent="sortBy(index+1)">{{month}}</th>
                         <template v-if="hasIndispoInfo">
-                            <th scope="col">Plus longue indispo</th>
-                            <th scope="col" @click.prevent="sortBy('timestampLogdown')">Durée</th>
+                            <th scope="col" @click.prevent="sortBy('timestampLogdown')">Plus longue indispo</th>
                             <th scope="col" @click.prevent="sortBy('cumulSeconde')">Cumule</th>
                             <th scope="col"></th>
                         </template>
@@ -123,15 +122,12 @@
                             <p v-else-if="range < 99.6" class="danger">{{range | formatNumber}}</p>
                         </td>
                         <template v-if="hasIndispoInfo">
-                            <td class="logdownDate" v-for="logdown in result.longerLogDown " :key="logdown.id">
-                                <p v-if="logdown.date != 0">{{logdown.date}}</p>
-                            </td>
                             <td class="logdownDuration" v-for="logdown in result.longerLogDown " :key="logdown.id">
                                 <p class="timestamp" hidden>{{logdown.timestamp}}</p>
-                                {{logdown.duration}}
+                                {{logdown.duration}} <template v-if="logdown.date != 0"> - {{logdown.date}} </template>
                             </td>
                             <td class="">
-                                {{result.cumul}}
+                                {{result.cumul}} - {{result.logscount}}
                             </td>
                             <td class="actions text-right">
                                 <div class="btn-group" role="group" aria-label="Basic example">
@@ -140,7 +136,6 @@
                             </td>
                             <td>
                                 <div class="switch-toggle alert alert-secondary mb-0">
-                                    
                                     <input :id="'pause'+index" :name="'startpause'+index" type="radio" :data-id="result.id" :checked="result.status === 2 && canPauseAndStop === true" @click="continueMonitor">
                                     <label :for="'pause'+index"><i :class="{ 'text-white': result.status != 0 && canPauseAndStop === true, 'fas fa-play':true} " aria-hidden="true"></i></label>
                                     
@@ -149,7 +144,6 @@
                                     
                                     <a v-if="result.status === 0 && canPauseAndStop" class="btn btn-secondary"></a>
                                     <a v-if="result.status != 0 && canPauseAndStop" class="btn btn-success"></a>
-                                
                                 </div>
                             </td>
 
