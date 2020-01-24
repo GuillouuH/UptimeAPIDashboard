@@ -10,6 +10,8 @@ export interface ILog extends mongoose.Document {
     duration:number;
     code:number;
     detail: number;
+    comment:string;
+    takeIntoAccount:boolean;
 }
 
 export const LogSchema = new Schema({
@@ -37,5 +39,15 @@ export const LogSchema = new Schema({
     detail : {
         type: String,
         required: 'Enter a detail'
+    },
+    comment : {
+        type: String,
+        required: 'Enter a detail',
+        default: ''
+    },
+    takeIntoAccount : {
+        type: Boolean,
+        required: 'Enter a detail',
+        default: true
     }
 });

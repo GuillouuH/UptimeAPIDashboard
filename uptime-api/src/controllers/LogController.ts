@@ -19,6 +19,31 @@ export class LogController{
             res.json(data)
         });
     }
+
+
+    // Update log with Take Into Account
+
+    public async takeIntoAccountLog(req: Request, res: Response){
+        try {
+            let logUpdate = await Log.findOneAndUpdate({_id : req.body.id}, { comment: req.body.comment, takeIntoAccount: req.body.takeIntoAccount });
+            res.json({message : "Update", log:logUpdate!._id});
+        } catch (err) {
+            res.send({ message: "Error" });
+        }
+    }
+
+
+    // Update logs With new model
+
+    public async updateLogs(req: Request, res: Response){
+        try {
+            await Log.updateMany({}, { comment: "", takeIntoAccount: true });
+            res.json({message : "Update"});
+        } catch (err) {
+            res.send({ message: "Error" });
+        }
+    }
+
     // Get all logs
     public getLogs(req: Request, res: Response) {
         Log.find({}, (err, logs) => {
@@ -116,7 +141,9 @@ export class LogController{
                         "datetime":element.datetime,
                         "duration":element.duration,
                         "reason":{"code":element.code,"detail":element.detail},
-                        "type":element.Type.logTypeId
+                        "type":element.Type.logTypeId,
+                        "comment":element.comment,
+                        "takeIntoAccount":element.takeIntoAccount
                     }
                     logArray.push(tmpLog)
                 }
@@ -139,7 +166,9 @@ export class LogController{
                         "datetime":parseInt(start),
                         "duration":lastLog.duration,
                         "reason":{"code":lastLog.code,"detail":lastLog.detail},
-                        "type":lastLog.Type.logTypeId
+                        "type":lastLog.Type.logTypeId,
+                        "comment":lastLog.comment,
+                        "takeIntoAccount":lastLog.takeIntoAccount
                     }
                     logsSite = [tmpLog]
                 }
@@ -157,29 +186,31 @@ export class LogController{
                         }
                         let rangeDuration = this.getDuration(parseInt(range[0]), parseInt(range[1]), custom_days_range, custom_interval)
                         logsSite.forEach((el, idx, array) => {
-                            if(el === logsSite[logsSite.length-1]){
-                                el.duration = parseInt(moment().format("X")) - el.datetime
-                            } else {
-                                el.duration = logsSite[idx + 1].datetime - el.datetime
-                            }
-                            if(el.datetime < parseInt(range[0]) && el.datetime + el.duration > parseInt(range[1]) && el.type === 1){
-                                durationLog = null
-                            } else {
-                                // Si le dernier log est un log de pause 
-                                if(el.datetime <= parseInt(range[0]) && el.datetime + el.duration >= parseInt(range[0]) && el.type === 99 && el == logsSite[logsSite.length-1]){
-                                    durationLog = null;
-                                } else if(el.datetime < parseInt(range[0]) && el.datetime + el.duration > parseInt(range[0]) && el.type === 1){
-                                    let duration = el.datetime + el.duration - parseInt(range[0]); 
-                                    durationLog = durationLog + duration
-                                }else if(el.datetime >= parseInt(range[0]) && el.datetime <= parseInt(range[1]) && el.type === 1){
-                                    let duration = el.duration
-                                    if(el.datetime + el.duration > parseInt(range[1]))
-                                        duration = parseInt(range[1]) - el.datetime
-                                    
-                                    durationLog = durationLog + duration
-                                    allLogs.push(el)
-                                } 
-                            }
+                                if(el === logsSite[logsSite.length-1]){
+                                    el.duration = parseInt(moment().format("X")) - el.datetime
+                                } else {
+                                    el.duration = logsSite[idx + 1].datetime - el.datetime
+                                }
+                                if(el.datetime < parseInt(range[0]) && el.datetime + el.duration > parseInt(range[1]) && el.type === 1){
+                                    durationLog = null
+                                } else {
+                                    // Si le dernier log est un log de pause 
+                                    if(el.datetime <= parseInt(range[0]) && el.datetime + el.duration >= parseInt(range[0]) && el.type === 99 && el == logsSite[logsSite.length-1]){
+                                        durationLog = null;
+                                    } else if(el.datetime < parseInt(range[0]) && el.datetime + el.duration > parseInt(range[0]) && el.type === 1){
+                                        let duration = el.datetime + el.duration - parseInt(range[0]); 
+                                        durationLog = durationLog + duration
+                                    }else if(el.datetime >= parseInt(range[0]) && el.datetime <= parseInt(range[1]) && el.type === 1){
+                                        if(el.takeIntoAccount){
+                                            let duration = el.duration
+                                            if(el.datetime + el.duration > parseInt(range[1]))
+                                                duration = parseInt(range[1]) - el.datetime
+                                            durationLog = durationLog + duration
+                                        }
+                                        allLogs.push(el)
+                                    } 
+                                }
+                            
                         });
                         if(parseInt(range[1]) < element.createDatetime) {
                             durationLog = null
@@ -289,7 +320,9 @@ export class LogController{
                                 "datetime":startDay,
                                 "duration":duration,
                                 "reason":el.reason,
-                                "type":el.type
+                                "type":el.type,
+                                "comment":el.comment,
+                                "takeIntoAccount":el.takeIntoAccount
                             }
                             allLogs.push(log)
                         }

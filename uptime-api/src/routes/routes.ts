@@ -54,6 +54,9 @@ export class Routes {
         .post(AuthenticateUser, this.logController.getLogs)
         .delete(AuthenticateUser, this.logController.deleteLogs)
 
+        app.route('/logtakeintoaccount')
+        .post(AuthenticateUser, this.logController.takeIntoAccountLog)
+
         app.route('/siteslogs')
         .post(AuthenticateUser, this.logController.getLogsBySites)
 
