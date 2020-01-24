@@ -109,7 +109,10 @@
                                                     <th>Date</th>
                                                     <th>Heure</th>
                                                     <th>Raison</th>
+                                                    <th>Commentaire</th>
                                                     <th>Durée</th>
+                                                    <th>Prendre en compte</th>
+                                                    <th>Actions</th>
                                                 </thead>
                                                 <tbody>
                                                     <tr v-for="logs in filter[0].logs " :key="logs.id">
@@ -122,8 +125,20 @@
                                                         <td :id="logs.datetime">
                                                             {{logs.reason.code}} - {{logs.reason.detail}}
                                                         </td>
+                                                        <td>
+                                                            <input class="form-control comment" type="text"  :value="logs.comment">
+                                                        </td>
                                                         <td :id="logs.timestamp">
                                                             {{logs.duration}}
+                                                        </td>
+                                                        <td >
+                                                            <div class="custom-control custom-switch">
+                                                                <input type="checkbox" class="custom-control-input takeIntoAccount" :id="logs._id" :checked="logs.takeIntoAccount === true">
+                                                                <label class="custom-control-label" :for="logs._id"></label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <button type="button" class="btn btn-success" @click="saveLog" :data-id="logs._id"><span class="fa fa-check" aria-hidden="true"></span></button>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -403,7 +418,7 @@ export default {
                 }
             }
             for (var i in logs){
-                logsDown.push({"date": moment(logs[i].datetime, 'X').locale('fr').format('L'),"datetime":logs[i].datetime, "hour": moment(logs[i].datetime, 'X').locale('fr').format('HH:mm:ss'), "reason":logs[i].reason, "duration":this.convertSecondIntoTime(logs[i].duration), "timestamp":logs[i].duration});
+                logsDown.push({"_id": logs[i]._id,"date": moment(logs[i].datetime, 'X').locale('fr').format('L'),"datetime":logs[i].datetime, "hour": moment(logs[i].datetime, 'X').locale('fr').format('HH:mm:ss'), "reason":logs[i].reason, "duration":this.convertSecondIntoTime(logs[i].duration), "timestamp":logs[i].duration, "comment":logs[i].comment, "takeIntoAccount":logs[i].takeIntoAccount});
                 if (logs[i].duration>duration){
                     date = moment(logs[i].datetime, 'X').locale('fr').format('dddd L');
                     hour = moment(logs[i].datetime, 'X').locale('fr').format('HH:mm:ss');
@@ -435,6 +450,27 @@ export default {
                 time = days+"j"+hours+"h"+minutes+"m"+seconds+"s";
 
             return time
+        },
+        saveLog : function(e){
+            e.preventDefault();
+            let id = e.currentTarget.getAttribute('data-id')
+            let comment = $(e.target).closest('tr').find('.comment').val()
+            let takeIntoAccount = $(e.target).closest('tr').find('.takeIntoAccount').is(":checked");
+            let url = process.env.urlAPI+'logtakeintoaccount';
+            let data = {
+                "id":id,
+	            "comment":comment,
+	            "takeIntoAccount":takeIntoAccount
+            }
+            axios.post(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+            then(response => {
+                if(response.data.success === false){
+                    alert("Une erreur s'est produite lors de l'enregistrement");
+                } else {
+                    alert("Enregistrement réussi");
+                }
+            });
+
         }
     }
 }

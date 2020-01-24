@@ -26,9 +26,9 @@ export class LogController{
     public async takeIntoAccountLog(req: Request, res: Response){
         try {
             let logUpdate = await Log.findOneAndUpdate({_id : req.body.id}, { comment: req.body.comment, takeIntoAccount: req.body.takeIntoAccount });
-            res.json({message : "Update", log:logUpdate!._id});
+            res.json({success:true, message : "Update", log:logUpdate!._id});
         } catch (err) {
-            res.send({ message: "Error" });
+            res.send({success:false, message: "Error" });
         }
     }
 
@@ -137,6 +137,7 @@ export class LogController{
             logs.forEach((element : any) => {
                 if([1, 2, 99].indexOf(element.Type.logTypeId) > -1) {
                     let tmpLog = {
+                        "_id":element._id,
                         "site":element.Site._id,
                         "datetime":element.datetime,
                         "duration":element.duration,
@@ -162,6 +163,7 @@ export class LogController{
                 
                 if(logsSite.length === 0 && Object.entries(lastLog).length > 0  && lastLog.Type.logTypeId === 99){
                     let tmpLog = {
+                        "_id":element._id,
                         "site":lastLog.Site._id,
                         "datetime":parseInt(start),
                         "duration":lastLog.duration,
