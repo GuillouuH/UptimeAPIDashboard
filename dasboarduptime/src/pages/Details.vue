@@ -112,7 +112,7 @@
                                                     <th>Commentaire</th>
                                                     <th>Durée</th>
                                                     <th>Prendre en compte</th>
-                                                    <th>Actions</th>
+                                                    <th class="text-right">Actions</th>
                                                 </thead>
                                                 <tbody>
                                                     <tr v-for="logs in filter[0].logs " :key="logs.id">
