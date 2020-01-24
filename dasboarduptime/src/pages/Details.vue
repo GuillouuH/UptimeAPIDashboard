@@ -268,6 +268,11 @@
                 </div>
             </div>
         </div>
+        <div v-else class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
     </div>
 </template>
 
