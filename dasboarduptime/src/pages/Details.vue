@@ -92,7 +92,7 @@
                         </div>
                         <div class="row">
                             <div class="col-lg-12">
-                                <div class="card border-primary" v-if="filter != ''">
+                                <div class="card border-primary" v-if="filter != '' && logs_array.length > 0">
                                     <div class="card-header">
                                         <div v-for="logs in filter[0].longerLogDown" :key="logs.id" class="col-xs-9 text-center">
                                             <strong v-if="logs.date == '0'">Aucune indisponibilité</strong>
@@ -112,10 +112,9 @@
                                                     <th>Commentaire</th>
                                                     <th>Durée</th>
                                                     <th>Prendre en compte</th>
-                                                    <th class="text-right">Actions</th>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="logs in filter[0].logs " :key="logs.id">
+                                                    <tr v-for="logs in logs_array" :key="logs.id">
                                                         <td :id="logs.datetime">
                                                             {{logs.date}}
                                                         </td>
@@ -126,19 +125,16 @@
                                                             {{logs.reason.code}} - {{logs.reason.detail}}
                                                         </td>
                                                         <td>
-                                                            <input class="form-control comment" type="text"  :value="logs.comment">
+                                                            <input class="form-control comment" type="text" v-model="logs.comment" @keydown="logsModifiedText" :data-id="logs._id">
                                                         </td>
                                                         <td :id="logs.timestamp">
                                                             {{logs.duration}}
                                                         </td>
                                                         <td >
                                                             <div class="custom-control custom-switch">
-                                                                <input type="checkbox" class="custom-control-input takeIntoAccount" :id="logs._id" :checked="logs.takeIntoAccount === true">
+                                                                <input type="checkbox" class="custom-control-input takeIntoAccount" @change="logsModifiedTakeIntoAccount" :data-id="logs._id" :id="logs._id" :checked="logs.takeIntoAccount === true">
                                                                 <label class="custom-control-label" :for="logs._id"></label>
                                                             </div>
-                                                        </td>
-                                                        <td class="text-right">
-                                                            <button type="button" class="btn btn-success" @click="saveLog" :data-id="logs._id"><span class="fa fa-check" aria-hidden="true"></span></button>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -153,6 +149,15 @@
                                                         </td>
                                                     </tr>
                                                 </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <td colspan="12">
+                                                            <div class="d-flex justify-content-center">
+                                                                <button type="button" class="btn btn-success btn-lg" @click="saveLog">Enregistrer</button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
                                             </table>
                                         </div>
                                     </div>
@@ -295,7 +300,9 @@ export default {
             jours : [],
             hasSearch : false,
             date: null,
-            currenttimestamp:moment().format('X')
+            currenttimestamp:moment().format('X'),
+            logs_array : [],
+            modified_logs : []
         };
     },
     computed: {
@@ -347,6 +354,13 @@ export default {
             vm.getRange();
             vm.getMonth();
             vm.filter = await vm.getUptimeData();
+            vm.logs_array = vm.filter[0].logs;
+
+            vm.logs_array= vm.logs_array.map(function(el) {
+                var o = Object.assign({}, el);
+                o.isModified = false;
+                return o;
+            })
             await vm.getDataUptimeWeek();
         },
         getUptimeData: async function(){
@@ -456,17 +470,29 @@ export default {
 
             return time
         },
+        logsModifiedTakeIntoAccount : function(e){
+            let takeIntoAccount = $(e.target).is(":checked");
+            let id = e.currentTarget.getAttribute('data-id');
+        
+            var foundIndex = this.logs_array.findIndex(e => e._id == id);
+            this.logs_array[foundIndex].isModified = true;
+            this.logs_array[foundIndex].takeIntoAccount = takeIntoAccount;
+        },
+        logsModifiedText : function(e){
+            let id = e.currentTarget.getAttribute('data-id');
+            var foundIndex = this.logs_array.findIndex(e => e._id == id);
+            this.logs_array[foundIndex].isModified = true;
+        },
         saveLog : function(e){
             e.preventDefault();
-            let id = e.currentTarget.getAttribute('data-id')
-            let comment = $(e.target).closest('tr').find('.comment').val()
-            let takeIntoAccount = $(e.target).closest('tr').find('.takeIntoAccount').is(":checked");
+            let allModified = this.logs_array.filter(e => e.isModified === true);
+            let logArray = [];
+            allModified.forEach(e => {
+                logArray.push({"id":e._id, "comment":e.comment, "takeIntoAccount":e.takeIntoAccount})
+            });
+            //console.log(logArray);
             let url = process.env.urlAPI+'logtakeintoaccount';
-            let data = {
-                "id":id,
-	            "comment":comment,
-	            "takeIntoAccount":takeIntoAccount
-            }
+            let data = {"data":logArray};
             axios.post(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
             then(response => {
                 if(response.data.success === false){
@@ -475,7 +501,6 @@ export default {
                     alert("Enregistrement réussi");
                 }
             });
-
         }
     }
 }

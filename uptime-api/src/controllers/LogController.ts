@@ -24,12 +24,20 @@ export class LogController{
     // Update log with Take Into Account
 
     public async takeIntoAccountLog(req: Request, res: Response){
+        let array_logs = req.body.data;
+        
+        let all_promise : any = []
+        array_logs.forEach(async (e : any) => {
+            all_promise.push(Log.findOneAndUpdate({_id : e.id}, { comment: e.comment, takeIntoAccount: e.takeIntoAccount }).exec())            
+        });
+
         try {
-            let logUpdate = await Log.findOneAndUpdate({_id : req.body.id}, { comment: req.body.comment, takeIntoAccount: req.body.takeIntoAccount });
-            res.json({success:true, message : "Update", log:logUpdate!._id});
-        } catch (err) {
-            res.send({success:false, message: "Error" });
+            await Promise.all(all_promise);
+            res.json({message : "Update"});
+        } catch(err) {
+            res.send({ message: "Error" });
         }
+
     }
 
 
@@ -156,7 +164,7 @@ export class LogController{
             sites.forEach(async (element : any) => {
                 let lastLog = [];
                 let logsSite = logArray.filter( e => e.site.toString() === element._id.toString() )
-                let lastlogSite = lastlogsite.filter(e => e.Site._id.toString()  === element._id.toString() );
+                let lastlogSite = lastlogsite
                 lastlogSite.sort((a, b) => b.datetime - a.datetime);
                 if(lastlogSite.length > 0)
                     lastLog = lastlogSite[0];
