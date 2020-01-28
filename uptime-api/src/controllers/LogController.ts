@@ -163,7 +163,7 @@ export class LogController{
 
             sites.forEach(async (element : any) => {
                 let lastLog = [];
-                let logsSite = logArray.filter( e => e.site.toString() === element._id.toStrin())
+                let logsSite = logArray.filter( e => e.site.toString() === element._id.toString())
                 let lastlogSite = lastlogsite.filter(e => e.Site._id.toString()  === element._id.toString() );
                 lastlogSite.sort((a, b) => b.datetime - a.datetime);
                 if(lastlogSite.length > 0)
