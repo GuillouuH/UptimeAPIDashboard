@@ -355,12 +355,13 @@ export default {
             vm.getMonth();
             vm.filter = await vm.getUptimeData();
             vm.logs_array = vm.filter[0].logs;
-
-            vm.logs_array= vm.logs_array.map(function(el) {
-                var o = Object.assign({}, el);
-                o.isModified = false;
-                return o;
-            })
+            if(vm.logs_array !== "empty") {
+                vm.logs_array= vm.logs_array.map(function(el) {
+                    var o = Object.assign({}, el);
+                    o.isModified = false;
+                    return o;
+                })
+            }
             await vm.getDataUptimeWeek();
         },
         getUptimeData: async function(){
