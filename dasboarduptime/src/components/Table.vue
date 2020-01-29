@@ -9,10 +9,12 @@
                         <th scope="col" v-for="(month, index) in months" :key="month.id" @click.prevent="sortBy(index+1)">{{month}}</th>
                         <template v-if="hasIndispoInfo">
                             <th scope="col" @click.prevent="sortBy('timestampLogdown')">Plus longue indispo</th>
-                            <th scope="col" @click.prevent="sortBy('cumulSeconde')">Cumulé</th>
+                            <th scope="col" @click.prevent="sortBy('cumulSeconde')">Cumulé <br> Nb indispo</th>
                             <th scope="col"></th>
                         </template>
+                        <template v-if="hasSort === true">
                             <th scope="col"></th>
+                        </template>
                     </tr>
                     <template v-if="data != ''">
                         <tr v-if="hasAverage == true" class="MoyenneHeaders" >

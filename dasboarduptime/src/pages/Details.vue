@@ -394,11 +394,19 @@ export default {
             let currentDate = moment().format('X');
             let startYear = moment(currentDate, 'X').startOf('year').format('X');
             var results = [];
+
+
             let data = {
                 "site":[vm.$route.params.id],
                 "ranges":this.weekRange,
                 "custom_interval":vm.$route.params.interval,
                 "custom_days_range":vm.$route.params.daysSelected
+            }
+            if(vm.$route.params.interval[0] === "0" && vm.$route.params.interval[1] === "86400"){
+                data = {
+                    "site":[vm.$route.params.id],
+                    "ranges":this.weekRange
+                }
             }
             let detail = Array();
             let url = process.env.urlAPI+'siteslogs';

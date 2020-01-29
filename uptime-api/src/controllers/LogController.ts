@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { SiteSchema, ISite } from '../models/SiteModel';
 import { LogSchema, ILog } from '../models/LogModel';
 import { AccountTypeSchema } from '../models/AccountTypeModel';
+import { LogTypeSchema, ILogType } from '../models/LogTypeModel';
 
 //import * as moment from 'moment/moment';
 import  moment from 'moment-timezone';
@@ -10,6 +11,7 @@ import  moment from 'moment-timezone';
 const Log = mongoose.model<ILog>('Log', LogSchema);
 const Site = mongoose.model<ISite>('Sites', SiteSchema);
 const AccountType = mongoose.model('typeaccount', AccountTypeSchema);
+const LogType = mongoose.model<ILogType>('logtype', LogTypeSchema);
 
 export class LogController{
     public deleteLogs(req: Request, res: Response){
@@ -108,6 +110,75 @@ export class LogController{
         }).lean();
     }
 
+    // Get log pour un intervalle donné
+    public async getLogInIntervalle(Site:string, start:number, end:number, logTypeDown:Array<any>, allLogType:Array<any>, downPauseType:Array<any>){
+        let LogsRequest = Log.find(
+            {
+                Site : { $eq: Site}, 
+                datetime:{$lte:end, $gte:start}
+            }, 
+            {},
+            {
+                sort:{datetime:-1}
+            }
+        ).lean().exec();
+
+        let LastLogRequest = Log.findOne(
+            {
+                Site : { $eq: Site}, 
+                datetime:{$lte:start}
+            }, 
+            {},
+            {
+                sort:{datetime:-1}
+            }
+        ).lean().exec();
+        
+        try {
+            let logArray : any = [];
+            await Promise.all([LogsRequest, LastLogRequest]).then(async ([logrequest, lastlogrequest])=>{
+                for(var i = 0; i < logrequest.length; i++){
+                    if(logTypeDown.indexOf(logrequest[i].Type.toString()) > -1) {
+                        let tmpLog = {
+                            "_id":logrequest[i]._id,
+                            "site":logrequest[i].Site,
+                            "datetime":logrequest[i].datetime,
+                            "duration":logrequest[i].duration,
+                            "reason":{"code":logrequest[i].code,"detail":logrequest[i].detail},
+                            "type":allLogType[logrequest[i].Type],
+                            "comment":logrequest[i].comment,
+                            "takeIntoAccount":logrequest[i].takeIntoAccount
+                        }
+                        logArray.push(tmpLog)
+                    }
+                }
+                
+                if(logArray.length === 0){      
+                    if(lastlogrequest !== null && Object.entries(lastlogrequest).length > 0  && downPauseType.indexOf(lastlogrequest.Type.toString()) > -1){
+                        let tmpLog = {
+                            "_id":lastlogrequest._id,
+                            "site":lastlogrequest.Site,
+                            "datetime":lastlogrequest.datetime,
+                            "duration":lastlogrequest.duration,
+                            "reason":{"code":lastlogrequest.code,"detail":lastlogrequest.detail},
+                            "type":allLogType[lastlogrequest.Type],
+                            "comment":lastlogrequest.comment,
+                            "takeIntoAccount":lastlogrequest.takeIntoAccount
+                        }
+                        logArray = [tmpLog]
+                    }
+                }
+            },reason => {
+                console.log(reason)
+            })
+            
+            return logArray;
+        } catch(e){
+            console.log(e)
+        }
+
+    }
+
     // Get logs for each Sites
     public getLogsBySites = async (req: Request, res: Response) => {
         const { site, ranges, custom_days_range = Array(), custom_interval = Array(), account=0} = req.body;
@@ -116,179 +187,147 @@ export class LogController{
             e = e.split('_'); 
             return e;
         });
-        let end = rangesArray[0][1];
-        let start = rangesArray[rangesArray.length - 1][0];
-        let requestLogs = {}
         let requestSite = {}
-        requestLogs  = {datetime: {$gte: parseInt(start), $lte:parseInt(end)}};
+
         if(Array.isArray(site)){
-            requestLogs  = {Site : { $in: site}, datetime: {$gte: parseInt(start), $lte:parseInt(end)}}
             requestSite = {_id : { $in: site}}
         }
-        let Logs = Log.find(requestLogs)
-        .populate('Type')   
-        .populate({
-            path:"Site",
-            populate : {
-                path:"Account"
-            }
-        }).lean().exec();
         
         let TypeAccount = AccountType.find({}).lean().exec();
         let Sites =  Site.find(requestSite).populate('Account').lean().exec();
-        let LastLogSite = await Log.find({datetime: {$lte:parseInt(start)}}, {datetime:-1}).populate({path : 'Site'}).populate('Type').lean().exec();
+        let LogTypesDown = LogType.find({}, '_id logTypeId').exec();
 
         let allSites = Array();        
-
-        await Promise.all([Logs, Sites, TypeAccount, LastLogSite]).then(async ([logs, sites, typeaccount, lastlogsite])=>{
-            var logArray = Array();
-            logs.forEach((element : any) => {
-                if([1, 2, 99].indexOf(element.Type.logTypeId) > -1) {
-                    let tmpLog = {
-                        "_id":element._id,
-                        "site":element.Site._id,
-                        "datetime":element.datetime,
-                        "duration":element.duration,
-                        "reason":{"code":element.code,"detail":element.detail},
-                        "type":element.Type.logTypeId,
-                        "comment":element.comment,
-                        "takeIntoAccount":element.takeIntoAccount
+        
+        try {
+            await Promise.all([Sites, TypeAccount, LogTypesDown]).then(async ([sites, typeaccount, logtypesdown])=>{
+                let logTypesDown = Array();
+                let allLogType = Array();
+                let downPauseType = Array();
+                logtypesdown.forEach(e => {
+                    allLogType[e._id] = e.logTypeId
+                    if(e.logTypeId == 1 || e.logTypeId === 99 ){
+                        downPauseType.push(e._id.toString())
+                        logTypesDown.push(e._id.toString())
                     }
-                    logArray.push(tmpLog)
-                }
-            });
-
-            if(account != 0)
-                sites = sites.filter((e : any) => e.Account.Type == account)
-
-            sites.forEach(async (element : any) => {
-                let lastLog = [];
-                let logsSite = logArray.filter( e => e.site.toString() === element._id.toString())
-                let lastlogSite = lastlogsite.filter(e => e.Site._id.toString()  === element._id.toString() );
-                lastlogSite.sort((a, b) => b.datetime - a.datetime);
-                if(lastlogSite.length > 0)
-                    lastLog = lastlogSite[0];
+                    if(e.logTypeId === 2 ){
+                        logTypesDown.push(e._id.toString())
+                    }
+                })
+                if(account != 0)
+                    sites = sites.filter((e : any) => e.Account.Type == account)
                 
-                if(logsSite.length === 0 && Object.entries(lastLog).length > 0  && lastLog.Type.logTypeId === 99){
-                    let tmpLog = {
-                        "_id":element._id,
-                        "site":lastLog.Site._id,
-                        "datetime":parseInt(start),
-                        "duration":lastLog.duration,
-                        "reason":{"code":lastLog.code,"detail":lastLog.detail},
-                        "type":lastLog.Type.logTypeId,
-                        "comment":lastLog.comment,
-                        "takeIntoAccount":lastLog.takeIntoAccount
-                    }
-                    logsSite = [tmpLog]
-                }
-                let uptime : any = [];
-                let allLogs = Array()
-                if(typeof ranges === "string"){
-                    let rangeArray = ranges.split("-")
-                    logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval)
-                    logsSite.sort((a, b) => a.datetime - b.datetime);
-                    rangeArray.forEach(e => {
-                        let range = e.split("_")
-                        let durationLog : any = 0; 
-                        if(parseInt(range[0]) < element.createDatetime){
-                            range[0] = element.createDatetime;
-                        }
-                        let rangeDuration = this.getDuration(parseInt(range[0]), parseInt(range[1]), custom_days_range, custom_interval)
-                        logsSite.forEach((el, idx, array) => {
+                for(var i = 0; i < sites.length; i++){
+                    let uptime : any = [];
+                    let allLogs = Array()
+                    if(typeof ranges === "string"){
+                        for(var j = 0; j < rangesArray.length; j++){
+                            let durationLog : any = 0; 
+                            if(parseInt(rangesArray[j][0]) < sites[i].createDatetime){
+                                rangesArray[j][0] = sites[i].createDatetime;
+                            }
+                            let logsSite : any = await this.getLogInIntervalle(sites[i]._id, parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), logTypesDown, allLogType, downPauseType);
+                            logsSite =  this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, sites[i]._id)
+                            logsSite.sort((a : any, b : any) => a.datetime - b.datetime);                        
+                            let rangeDuration = this.getDuration(parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), custom_days_range, custom_interval)
+                            logsSite.forEach((el : any, idx : any, array : any) => {    
                                 if(el === logsSite[logsSite.length-1]){
                                     el.duration = parseInt(moment().format("X")) - el.datetime
                                 } else {
                                     el.duration = logsSite[idx + 1].datetime - el.datetime
                                 }
-                                if(el.datetime < parseInt(range[0]) && el.datetime + el.duration > parseInt(range[1]) && el.type === 1){
+                                if(el.datetime < parseInt(rangesArray[j][0]) && el.datetime + el.duration > parseInt(rangesArray[j][1]) && el.type === 1){
                                     durationLog = null
                                 } else {
                                     // Si le dernier log est un log de pause 
-                                    if(el.datetime <= parseInt(range[0]) && el.datetime + el.duration >= parseInt(range[0]) && el.type === 99 && el == logsSite[logsSite.length-1]){
+                                    if(el.datetime <= parseInt(rangesArray[j][0]) && el.datetime + el.duration >= parseInt(rangesArray[j][0]) && (el.type === 99) && el == logsSite[logsSite.length-1]){
                                         durationLog = null;
-                                    } else if(el.datetime < parseInt(range[0]) && el.datetime + el.duration > parseInt(range[0]) && el.type === 1){
-                                        let duration = el.datetime + el.duration - parseInt(range[0]); 
+                                    } else if(el.datetime < parseInt(rangesArray[j][0]) && el.datetime + el.duration > parseInt(rangesArray[j][0]) && el.type === 1){
+                                        let duration = el.datetime + el.duration - parseInt(rangesArray[j][0]); 
                                         durationLog = durationLog + duration
-                                    }else if(el.datetime >= parseInt(range[0]) && el.datetime <= parseInt(range[1]) && el.type === 1){
+                                    }else if(el.datetime >= parseInt(rangesArray[j][0]) && el.datetime <= parseInt(rangesArray[j][1]) && el.type === 1){
                                         if(el.takeIntoAccount){
                                             let duration = el.duration
-                                            if(el.datetime + el.duration > parseInt(range[1]))
-                                                duration = parseInt(range[1]) - el.datetime
+                                            if(el.datetime + el.duration > parseInt(rangesArray[j][1]))
+                                                duration = parseInt(rangesArray[j][1]) - el.datetime
                                             durationLog = durationLog + duration
                                         }
                                         allLogs.push(el)
                                     } 
                                 }
+                                
+                            });
                             
-                        });
-                        if(parseInt(range[1]) < element.createDatetime) {
-                            durationLog = null
+                            if(parseInt(rangesArray[j][1]) < sites[i].createDatetime) {
+                                durationLog = null
+                            }
+                            if(durationLog == null){
+                                uptime.push("0.000")
+                            } else if( durationLog === 0) {
+                                uptime.push("100.000")
+                            }else {
+                                let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
+                                uptime.push(tmpUptime.toFixed(3))
+                            }
                         }
-                        if(durationLog == null){
-                            uptime.push("0.000")
-                        } else if( durationLog === 0) {
-                            uptime.push("100.000")
-                        }else {
-                            let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
-                            uptime.push(tmpUptime.toFixed(3))
-                        }
-                    });
-                }
+                    }
 
-                allLogs.sort((a, b) => b.datetime - a.datetime);
-                let accounttype = typeaccount.find((e : any) => e._id.toString() === element.Account.Type)
-                let ssl = {
-                    "ssl_monitored":element.ssl_monitored,
-                    "ssl_issuer":element.ssl_issuer,
-                    "ssl_subject":element.ssl_subject,
-                    "ssl_algo":element.ssl_algo,
-                    "ssl_expireDatetime":element.ssl_expireDatetime,
-                    "ssl_error":element.ssl_error
-                };
-                let screenShot = {
-                    "screenshot_url":element.screenshot_url,
-                    "screenshot_dateTime":element.screenshot_dateTime,
-                    "screenshot_error":element.screenshot_error
-                };
-                let lighthouse = {
-                    "lighthouse_url":element.lighthouse_url,
-                    "lighthouse_performance":element.lighthouse_performance,
-                    "lighthouse_accessibility":element.lighthouse_accessibility,
-                    "lighthouse_bestPractices":element.lighthouse_bestPractices,
-                    "lighthouse_seo":element.lighthouse_seo,
-                    "lighthouse_pwa":element.lighthouse_pwa,
-                    "lighthouse_dateTime":element.lighthouse_dateTime
-                };
-                let siteArray = {
-                    "id":element._id,
-                    "moment": parseInt(moment().tz('Europe/Paris').format('X')),
-                    "accounttype":accounttype,
-                    "id_object":element._id,
-                    "status": element.status,
-                    "account":element.Account._id,
-                    "accountname":element.Account.email,
-                    "custom_uptime_ranges":uptime.join("-"),
-                    "custom_days_range": custom_days_range.join("-"),
-                    "friendly_name":element.name,
-                    "creation_datetime":element.createDatetime,
-                    "url":element.url,
-                    "logs":allLogs,
-                    "ssl":ssl,
-                    "screenshot":screenShot,
-                    "lighthouse":lighthouse
-                }
+                    allLogs.sort((a, b) => b.datetime - a.datetime);
+                    let accounttype = typeaccount.find((e : any) => e._id.toString() === sites[i].Account.Type)
+                    let ssl = {
+                        "ssl_monitored":sites[i].ssl_monitored,
+                        "ssl_issuer":sites[i].ssl_issuer,
+                        "ssl_subject":sites[i].ssl_subject,
+                        "ssl_algo":sites[i].ssl_algo,
+                        "ssl_expireDatetime":sites[i].ssl_expireDatetime,
+                        "ssl_error":sites[i].ssl_error
+                    };
+                    let screenShot = {
+                        "screenshot_url":sites[i].screenshot_url,
+                        "screenshot_dateTime":sites[i].screenshot_dateTime,
+                        "screenshot_error":sites[i].screenshot_error
+                    };
+                    let lighthouse = {
+                        "lighthouse_url":sites[i].lighthouse_url,
+                        "lighthouse_performance":sites[i].lighthouse_performance,
+                        "lighthouse_accessibility":sites[i].lighthouse_accessibility,
+                        "lighthouse_bestPractices":sites[i].lighthouse_bestPractices,
+                        "lighthouse_seo":sites[i].lighthouse_seo,
+                        "lighthouse_pwa":sites[i].lighthouse_pwa,
+                        "lighthouse_dateTime":sites[i].lighthouse_dateTime
+                    };
+                    let siteArray = {
+                        "id":sites[i]._id,
+                        "moment": parseInt(moment().tz('Europe/Paris').format('X')),
+                        "accounttype":accounttype,
+                        "id_object":sites[i]._id,
+                        "status": sites[i].status,
+                        "account":sites[i].Account._id,
+                        "accountname":sites[i].Account.email,
+                        "custom_uptime_ranges":uptime.join("-"),
+                        "custom_days_range": custom_days_range.join("-"),
+                        "friendly_name":sites[i].name,
+                        "creation_datetime":sites[i].createDatetime,
+                        "url":sites[i].url,
+                        "logs":allLogs,
+                        "ssl":ssl,
+                        "screenshot":screenShot,
+                        "lighthouse":lighthouse
+                    }
 
-                allSites.push(siteArray);
-            })
-            allSites.sort((a,b) => ((a.friendly_name).toUpperCase() > (b.friendly_name).toUpperCase()) ? 1 : (((b.friendly_name).toUpperCase() > (a.friendly_name).toUpperCase()) ? -1 : 0));
-            res.json(allSites)
-        },reason => {
-            res.json(reason)
-        });
+                    allSites.push(siteArray);
+                }
+                allSites.sort((a,b) => ((a.friendly_name).toUpperCase() > (b.friendly_name).toUpperCase()) ? 1 : (((b.friendly_name).toUpperCase() > (a.friendly_name).toUpperCase()) ? -1 : 0));
+                res.json(allSites)
+            },reason => {
+                res.json(reason)
+            });
+        } catch(e){
+            console.log(e)
+        }
     }
 
-    getLogsWithDayAndInterval(logs:Array<any>, forbidenDay: Array<string>, intervals: Array<string>){
+    getLogsWithDayAndInterval(logs:Array<any>, forbidenDay: Array<string>, intervals: Array<string>, id:string){
         let allLogs = Array()
         let momentTime = parseInt(moment().tz('Europe/Paris').format('X'));
         if(intervals.length > 0 || forbidenDay.length) {
@@ -321,6 +360,7 @@ export class LogController{
                         if(forbidenDay.length > 0 && forbidenDay.indexOf(moment(startInterval, 'X').tz('Europe/Paris').endOf('day').locale('en').format('dddd').toLowerCase()) > -1){
                             duration = 0
                         }
+
                         if(duration != 0){
                             if(startDay <= startInterval)
                                 startDay = startInterval
