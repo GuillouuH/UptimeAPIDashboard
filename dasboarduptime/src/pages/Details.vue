@@ -6,7 +6,7 @@
                 <div class="Detail"  v-for="detail in details " :key="detail.id" >
                     <div class="col-lg-12">
                         <div class="row entete card-header">
-                            <div class="col-md-12">
+                            <div class="col-md-11">
                                 <div class="title">
                                     <h1  v-if="filter != ''" class="text-center">{{detail.name}} : Disponibilité globale :
                                         <small v-if="filter[0].ranges[0] == 0.000">nc</small>
@@ -14,6 +14,11 @@
                                         <small class="p-3 mb-2 bg-warning" v-else-if="filter[0].ranges[0] >99.6">{{filter[0].ranges[0] | formatNumber}} %</small>
                                         <small class="p-3 mb-2 bg-danger" v-else-if="filter[0].ranges[0] <99.6">{{filter[0].ranges[0] | formatNumber}} %</small>
                                     </h1>
+                                </div>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-center">
+                                <div class="btn-group" role="group" aria-label="Basic example">
+                                    <a tag="button" data-toggle="tooltip" data-placement="top" title="Voir le site"  class="btn btn-primary" target="_blank" :href="filter[0].url"><span class="fas fa-external-link-alt" aria-hidden="true"></span></a>
                                 </div>
                             </div>
                         </div>
@@ -421,6 +426,7 @@ export default {
                     results.push({
                         "name":response.data[i].friendly_name,
                         "status":response.data[i].status,
+                        "url":response.data[i].url,
                         "ranges":ranges,
                         "rangesW":rangeW,
                         "longerLogDown":longerLogDown,

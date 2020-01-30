@@ -203,11 +203,14 @@ export default {
             var results = vm.filter;
             var ranges = [];
             vm.average = [];
+            let logs_count = 0;
             if(from === "result")
                 vm.average.push("Moyenne") 
             results.forEach(function(element) { 
-                if(element["isVisible"])
+                if(element["isVisible"]){
                     ranges.push(element["ranges"]);
+                    logs_count += element.logscount
+                }
             })
             if(typeof ranges[0] !== "undefined") {
                 var lengthArray = ranges[0].length;
@@ -227,9 +230,9 @@ export default {
             } else {
                 vm.average = [];
             }
-
+            
             if(from === "result")
-                vm.average.push('','','', '');  
+                vm.average.push('',logs_count,'','');  
                 
             if(from === "dashboard") {
                 let totalAverage = 0;
