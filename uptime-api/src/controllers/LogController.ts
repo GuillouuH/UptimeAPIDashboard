@@ -111,7 +111,7 @@ export class LogController{
     }
 
     // Get log pour un intervalle donné
-    public async getLogInIntervalle(Site:string, start:number, end:number, logTypeDown:Array<any>, allLogType:Array<any>, downPauseType:Array<any>){
+    public async getLogInIntervalle(Site:string, start:number, end:number, logTypeDown:Array<any>, allLogType:Array<any>, downPauseType:Array<any>, rangeDuration:any){
         let LogsRequest = Log.find(
             {
                 Site : { $eq: Site}, 
@@ -172,7 +172,7 @@ export class LogController{
                 console.log(reason)
             })
             
-            return logArray;
+            return {logs:logArray, rangeDuration:rangeDuration, start:start, end:end};
         } catch(e){
             console.log(e)
         }
@@ -221,55 +221,67 @@ export class LogController{
                     let uptime : any = [];
                     let allLogs = Array()
                     if(typeof ranges === "string"){
+                        let all_promise = [];
                         for(var j = 0; j < rangesArray.length; j++){
-                            let durationLog : any = 0; 
                             if(parseInt(rangesArray[j][0]) < sites[i].createDatetime){
                                 rangesArray[j][0] = sites[i].createDatetime;
                             }
-                            let logsSite : any = await this.getLogInIntervalle(sites[i]._id, parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), logTypesDown, allLogType, downPauseType);
-                            logsSite =  this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, sites[i]._id)
-                            logsSite.sort((a : any, b : any) => a.datetime - b.datetime);                        
                             let rangeDuration = this.getDuration(parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), custom_days_range, custom_interval)
-                            logsSite.forEach((el : any, idx : any, array : any) => {    
-                                if(el === logsSite[logsSite.length-1]){
-                                    el.duration = parseInt(moment().format("X")) - el.datetime
-                                } else {
-                                    el.duration = logsSite[idx + 1].datetime - el.datetime
-                                }
-                                if(el.datetime < parseInt(rangesArray[j][0]) && el.datetime + el.duration > parseInt(rangesArray[j][1]) && el.type === 1){
-                                    durationLog = null
-                                } else {
-                                    // Si le dernier log est un log de pause 
-                                    if(el.datetime <= parseInt(rangesArray[j][0]) && el.datetime + el.duration >= parseInt(rangesArray[j][0]) && (el.type === 99) && el == logsSite[logsSite.length-1]){
-                                        durationLog = null;
-                                    } else if(el.datetime < parseInt(rangesArray[j][0]) && el.datetime + el.duration > parseInt(rangesArray[j][0]) && el.type === 1){
-                                        let duration = el.datetime + el.duration - parseInt(rangesArray[j][0]); 
-                                        durationLog = durationLog + duration
-                                    }else if(el.datetime >= parseInt(rangesArray[j][0]) && el.datetime <= parseInt(rangesArray[j][1]) && el.type === 1){
-                                        if(el.takeIntoAccount){
-                                            let duration = el.duration
-                                            if(el.datetime + el.duration > parseInt(rangesArray[j][1]))
-                                                duration = parseInt(rangesArray[j][1]) - el.datetime
-                                            durationLog = durationLog + duration
-                                        }
-                                        allLogs.push(el)
-                                    } 
-                                }
-                                
-                            });
-                            
-                            if(parseInt(rangesArray[j][1]) < sites[i].createDatetime) {
-                                durationLog = null
-                            }
-                            if(durationLog == null){
-                                uptime.push("0.000")
-                            } else if( durationLog === 0) {
-                                uptime.push("100.000")
-                            }else {
-                                let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
-                                uptime.push(tmpUptime.toFixed(3))
-                            }
+                            all_promise.push(this.getLogInIntervalle(sites[i]._id, parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), logTypesDown, allLogType, downPauseType, rangeDuration));
                         }
+                        await Promise.all(all_promise).then((promise_result:any) => {
+                            promise_result.forEach((result : any) => {
+                                let logsSite = result.logs
+                                let rangeDuration = result.rangeDuration
+                                let start = result.start
+                                let end = result.end
+                                let durationLog : any = 0;
+                                logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, sites[i]._id)
+                                logsSite.sort((a : any, b : any) => a.datetime - b.datetime);                        
+                                logsSite.forEach((el : any, idx : any, array : any) => {    
+                                    if(el === logsSite[logsSite.length-1]){
+                                        el.duration = parseInt(moment().format("X")) - el.datetime
+                                    } else {
+                                        el.duration = logsSite[idx + 1].datetime - el.datetime
+                                    }
+                                    if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(end) && el.type === 1){
+                                        durationLog = null
+                                    } else {
+                                        // Si le dernier log est un log de pause 
+                                        if(el.datetime <= parseInt(start) && el.datetime + el.duration >= parseInt(start) && (el.type === 99) && el == logsSite[logsSite.length-1]){
+                                            durationLog = null;
+                                        } else if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(start) && el.type === 1){
+                                            let duration = el.datetime + el.duration - parseInt(result.start); 
+                                            durationLog = durationLog + duration
+                                        }else if(el.datetime >= parseInt(start) && el.datetime <= parseInt(end) && el.type === 1){
+                                            if(el.takeIntoAccount){
+                                                let duration = el.duration
+                                                if(el.datetime + el.duration > parseInt(end))
+                                                    duration = parseInt(end) - el.datetime
+                                                durationLog = durationLog + duration
+                                            }
+                                            allLogs.push(el)
+                                        } 
+                                    }
+                                    
+                                });
+                                
+                                if(parseInt(end) < sites[i].createDatetime) {
+                                    durationLog = null
+                                }
+                                if(durationLog == null){
+                                    uptime.push("0.000")
+                                } else if( durationLog === 0) {
+                                    uptime.push("100.000")
+                                }else {
+                                    let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
+                                    uptime.push(tmpUptime.toFixed(3))
+                                }
+                            })
+                            
+                        },reason => {
+                            console.log(reason)
+                        })
                     }
 
                     allLogs.sort((a, b) => b.datetime - a.datetime);

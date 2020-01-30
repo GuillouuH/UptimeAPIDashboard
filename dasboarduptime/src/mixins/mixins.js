@@ -204,12 +204,14 @@ export default {
             var ranges = [];
             vm.average = [];
             let logs_count = 0;
+            let logs_cumul_seconde = 0;
             if(from === "result")
                 vm.average.push("Moyenne") 
             results.forEach(function(element) { 
                 if(element["isVisible"]){
                     ranges.push(element["ranges"]);
-                    logs_count += element.logscount
+                    logs_count += element.logscount;
+                    logs_cumul_seconde += element.cumulSeconde;
                 }
             })
             if(typeof ranges[0] !== "undefined") {
@@ -230,7 +232,8 @@ export default {
             } else {
                 vm.average = [];
             }
-            
+
+            var cumul_time = vm.convertSecondIntoTime(logs_cumul_seconde);
             if(from === "result")
                 vm.average.push('',logs_count,'','');  
                 
