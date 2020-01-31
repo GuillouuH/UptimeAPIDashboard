@@ -7,6 +7,7 @@ import { LogTypeSchema, ILogType } from '../models/LogTypeModel';
 
 //import * as moment from 'moment/moment';
 import  moment from 'moment-timezone';
+import { cpus } from 'os';
 
 const Log = mongoose.model<ILog>('Log', LogSchema);
 const Site = mongoose.model<ISite>('Sites', SiteSchema);
@@ -21,7 +22,6 @@ export class LogController{
             res.json(data)
         });
     }
-
 
     // Update log with Take Into Account
 
@@ -41,7 +41,6 @@ export class LogController{
         }
 
     }
-
 
     // Update logs With new model
 
@@ -179,6 +178,71 @@ export class LogController{
 
     }
 
+    public async getAllLogSites(all_promise : Array<any>, custom_days_range:any, custom_interval:any, site:any){
+        try {
+            let uptime : any = [];
+            let allLogs : any = [];
+            await Promise.all(all_promise).then((promise_result:any) => {
+                promise_result.forEach((result : any) => {
+                    let logsSite = result.logs
+                    let rangeDuration = result.rangeDuration
+                    let start = result.start
+                    let end = result.end
+                    let durationLog : any = 0;
+                    logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, site._id)
+                    logsSite.sort((a : any, b : any) => a.datetime - b.datetime);                        
+                    logsSite.forEach((el : any, idx : any, array : any) => {    
+                        if(el === logsSite[logsSite.length-1]){
+                            el.duration = parseInt(moment().format("X")) - el.datetime
+                        } else {
+                            el.duration = logsSite[idx + 1].datetime - el.datetime
+                        }
+                        if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(end) && el.type === 1){
+                            durationLog = null
+                        } else {
+                            // Si le dernier log est un log de pause 
+                            if(el.datetime <= parseInt(start) && el.datetime + el.duration >= parseInt(start) && (el.type === 99) && el == logsSite[logsSite.length-1]){
+                                durationLog = null;
+                            } else if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(start) && el.type === 1){
+                                let duration = el.datetime + el.duration - parseInt(result.start); 
+                                durationLog = durationLog + duration
+                            }else if(el.datetime >= parseInt(start) && el.datetime <= parseInt(end) && el.type === 1){
+                                if(el.takeIntoAccount){
+                                    let duration = el.duration
+                                    if(el.datetime + el.duration > parseInt(end))
+                                        duration = parseInt(end) - el.datetime
+                                    durationLog = durationLog + duration
+                                }
+                                allLogs.push(el)
+                            } 
+                        }
+                        
+                    });
+                    
+                    if(parseInt(end) < site.createDatetime) {
+                        durationLog = null
+                    }
+                    if(durationLog == null){
+                        uptime.push("0.000")
+                    } else if( durationLog === 0) {
+                        uptime.push("100.000")
+                    }else {
+                        let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
+                        uptime.push(tmpUptime.toFixed(3))
+                    }
+
+                });
+
+            },reason => {
+                console.log(reason)
+            });
+            return {allLogsSite : allLogs, uptimeSite: uptime, site : site}
+
+        } catch(err){
+            console.log(err)
+        }
+    }
+
     // Get logs for each Sites
     public getLogsBySites = async (req: Request, res: Response) => {
         const { site, ranges, custom_days_range = Array(), custom_interval = Array(), account=0} = req.body;
@@ -217,9 +281,9 @@ export class LogController{
                 if(account != 0)
                     sites = sites.filter((e : any) => e.Account.Type == account)
                 
+                let allLogSite_promises : any = []
+
                 for(var i = 0; i < sites.length; i++){
-                    let uptime : any = [];
-                    let allLogs = Array()
                     if(typeof ranges === "string"){
                         let all_promise = [];
                         for(var j = 0; j < rangesArray.length; j++){
@@ -229,106 +293,62 @@ export class LogController{
                             let rangeDuration = this.getDuration(parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), custom_days_range, custom_interval)
                             all_promise.push(this.getLogInIntervalle(sites[i]._id, parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), logTypesDown, allLogType, downPauseType, rangeDuration));
                         }
-                        await Promise.all(all_promise).then((promise_result:any) => {
-                            promise_result.forEach((result : any) => {
-                                let logsSite = result.logs
-                                let rangeDuration = result.rangeDuration
-                                let start = result.start
-                                let end = result.end
-                                let durationLog : any = 0;
-                                logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, sites[i]._id)
-                                logsSite.sort((a : any, b : any) => a.datetime - b.datetime);                        
-                                logsSite.forEach((el : any, idx : any, array : any) => {    
-                                    if(el === logsSite[logsSite.length-1]){
-                                        el.duration = parseInt(moment().format("X")) - el.datetime
-                                    } else {
-                                        el.duration = logsSite[idx + 1].datetime - el.datetime
-                                    }
-                                    if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(end) && el.type === 1){
-                                        durationLog = null
-                                    } else {
-                                        // Si le dernier log est un log de pause 
-                                        if(el.datetime <= parseInt(start) && el.datetime + el.duration >= parseInt(start) && (el.type === 99) && el == logsSite[logsSite.length-1]){
-                                            durationLog = null;
-                                        } else if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(start) && el.type === 1){
-                                            let duration = el.datetime + el.duration - parseInt(result.start); 
-                                            durationLog = durationLog + duration
-                                        }else if(el.datetime >= parseInt(start) && el.datetime <= parseInt(end) && el.type === 1){
-                                            if(el.takeIntoAccount){
-                                                let duration = el.duration
-                                                if(el.datetime + el.duration > parseInt(end))
-                                                    duration = parseInt(end) - el.datetime
-                                                durationLog = durationLog + duration
-                                            }
-                                            allLogs.push(el)
-                                        } 
-                                    }
-                                    
-                                });
-                                
-                                if(parseInt(end) < sites[i].createDatetime) {
-                                    durationLog = null
-                                }
-                                if(durationLog == null){
-                                    uptime.push("0.000")
-                                } else if( durationLog === 0) {
-                                    uptime.push("100.000")
-                                }else {
-                                    let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
-                                    uptime.push(tmpUptime.toFixed(3))
-                                }
-                            })
-                            
-                        },reason => {
-                            console.log(reason)
-                        })
+                        allLogSite_promises.push(this.getAllLogSites(all_promise, custom_days_range, custom_interval, sites[i]));
                     }
-
-                    allLogs.sort((a, b) => b.datetime - a.datetime);
-                    let accounttype = typeaccount.find((e : any) => e._id.toString() === sites[i].Account.Type)
-                    let ssl = {
-                        "ssl_monitored":sites[i].ssl_monitored,
-                        "ssl_issuer":sites[i].ssl_issuer,
-                        "ssl_subject":sites[i].ssl_subject,
-                        "ssl_algo":sites[i].ssl_algo,
-                        "ssl_expireDatetime":sites[i].ssl_expireDatetime,
-                        "ssl_error":sites[i].ssl_error
-                    };
-                    let screenShot = {
-                        "screenshot_url":sites[i].screenshot_url,
-                        "screenshot_dateTime":sites[i].screenshot_dateTime,
-                        "screenshot_error":sites[i].screenshot_error
-                    };
-                    let lighthouse = {
-                        "lighthouse_url":sites[i].lighthouse_url,
-                        "lighthouse_performance":sites[i].lighthouse_performance,
-                        "lighthouse_accessibility":sites[i].lighthouse_accessibility,
-                        "lighthouse_bestPractices":sites[i].lighthouse_bestPractices,
-                        "lighthouse_seo":sites[i].lighthouse_seo,
-                        "lighthouse_pwa":sites[i].lighthouse_pwa,
-                        "lighthouse_dateTime":sites[i].lighthouse_dateTime
-                    };
-                    let siteArray = {
-                        "id":sites[i]._id,
-                        "moment": parseInt(moment().tz('Europe/Paris').format('X')),
-                        "accounttype":accounttype,
-                        "id_object":sites[i]._id,
-                        "status": sites[i].status,
-                        "account":sites[i].Account._id,
-                        "accountname":sites[i].Account.email,
-                        "custom_uptime_ranges":uptime.join("-"),
-                        "custom_days_range": custom_days_range.join("-"),
-                        "friendly_name":sites[i].name,
-                        "creation_datetime":sites[i].createDatetime,
-                        "url":sites[i].url,
-                        "logs":allLogs,
-                        "ssl":ssl,
-                        "screenshot":screenShot,
-                        "lighthouse":lighthouse
-                    }
-
-                    allSites.push(siteArray);
                 }
+                await Promise.all(allLogSite_promises).then((promise_result:any) => {
+                    promise_result.forEach((element : any) => {
+                        let site = element.site
+                        let allLogs = element.allLogsSite
+                        let uptime = element.uptimeSite
+                        allLogs.sort((a : any, b: any) => b.datetime - a.datetime);
+                        let accounttype = typeaccount.find((e : any) => e._id.toString() === site.Account.Type)
+                        let ssl = {
+                            "ssl_monitored":site.ssl_monitored,
+                            "ssl_issuer":site.ssl_issuer,
+                            "ssl_subject":site.ssl_subject,
+                            "ssl_algo":site.ssl_algo,
+                            "ssl_expireDatetime":site.ssl_expireDatetime,
+                            "ssl_error":site.ssl_error
+                        };
+                        let screenShot = {
+                            "screenshot_url":site.screenshot_url,
+                            "screenshot_dateTime":site.screenshot_dateTime,
+                            "screenshot_error":site.screenshot_error
+                        };
+                        let lighthouse = {
+                            "lighthouse_url":site.lighthouse_url,
+                            "lighthouse_performance":site.lighthouse_performance,
+                            "lighthouse_accessibility":site.lighthouse_accessibility,
+                            "lighthouse_bestPractices":site.lighthouse_bestPractices,
+                            "lighthouse_seo":site.lighthouse_seo,
+                            "lighthouse_pwa":site.lighthouse_pwa,
+                            "lighthouse_dateTime":site.lighthouse_dateTime
+                        };
+                        let siteArray = {
+                            "id":site._id,
+                            "moment": parseInt(moment().tz('Europe/Paris').format('X')),
+                            "accounttype":accounttype,
+                            "id_object":site._id,
+                            "status": site.status,
+                            "account":site.Account._id,
+                            "accountname":site.Account.email,
+                            "custom_uptime_ranges":uptime.join("-"),
+                            "custom_days_range": custom_days_range.join("-"),
+                            "friendly_name":site.name,
+                            "creation_datetime":site.createDatetime,
+                            "url":site.url,
+                            "logs":allLogs,
+                            "ssl":ssl,
+                            "screenshot":screenShot,
+                            "lighthouse":lighthouse
+                        }
+
+                        allSites.push(siteArray);
+                    });
+                },reason => {
+                    console.log(reason)
+                });
                 allSites.sort((a,b) => ((a.friendly_name).toUpperCase() > (b.friendly_name).toUpperCase()) ? 1 : (((b.friendly_name).toUpperCase() > (a.friendly_name).toUpperCase()) ? -1 : 0));
                 res.json(allSites)
             },reason => {
@@ -339,8 +359,8 @@ export class LogController{
         }
     }
 
-    getLogsWithDayAndInterval(logs:Array<any>, forbidenDay: Array<string>, intervals: Array<string>, id:string){
-        let allLogs = Array()
+    public getLogsWithDayAndInterval(logs:Array<any>, forbidenDay: Array<string>, intervals: Array<string>, id:string){
+        let allLogs = []
         let momentTime = parseInt(moment().tz('Europe/Paris').format('X'));
         if(intervals.length > 0 || forbidenDay.length) {
             logs.forEach(el => {
@@ -400,7 +420,7 @@ export class LogController{
         return allLogs;
     }
 
-    getDuration(start:number, end: number, forbidenDay: Array<string>, intervals: Array<string>){
+    public getDuration(start:number, end: number, forbidenDay: Array<string>, intervals: Array<string>){
         let total = 0
         while(end > start){
             let startElement = parseInt(moment(end-1, 'X').tz('Europe/Paris').startOf("days").format('X'))
