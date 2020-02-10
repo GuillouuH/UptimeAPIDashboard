@@ -25,23 +25,25 @@ export class SiteController{
     public async addSiteWithLog (req: Request, res: Response) {                
         try {
             let account = await Account.findOne({_id:req.body.account});
-            console.log(req.body)
             let siteToAdd = {name : req.body.name, url : req.body.url, createDatetime : moment().format("X"), Account : account!._id, status:1}
             let logtype = await LogType.findOne({logTypeId:98});
             let newSite = new Site(siteToAdd);
-            newSite.save((err, site) => {
+            newSite.save(async (err, site) => {
                 if(err){
                     res.send(err);
                 } else {
-                    let logToAdd = {datetime:moment().format('X'), Site:site._id, Type: logtype!._id, duration:0, code:98, detail:"Monitor started"}
-                    let log = new Log(logToAdd);
-                    log.save();   
+                    try {
+                        let logToAdd = {datetime:moment().format('X'), Site:site._id, Type: logtype!._id, duration:0, code:98, detail:"Monitor started", comment:"", takeIntoAccount:true}
+                        let log =  new Log(logToAdd);
+                        await log.save();
+                        res.json({"success":1, "site":site});
+                    } catch(err){
+                        res.send({ "success":0, "message": err });
+                    }   
                 }
-                res.json({"success":1, "site":site});
-            });  
+            }); 
         } catch (err) {
-            console.log(err)
-            res.send({ success:0, message: err });
+            res.send({ "success":0, "message": err });
         }
     }
 

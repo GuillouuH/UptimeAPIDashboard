@@ -7,7 +7,6 @@ import { LogTypeSchema, ILogType } from '../models/LogTypeModel';
 
 //import * as moment from 'moment/moment';
 import  moment from 'moment-timezone';
-import { cpus } from 'os';
 
 const Log = mongoose.model<ILog>('Log', LogSchema);
 const Site = mongoose.model<ISite>('Sites', SiteSchema);

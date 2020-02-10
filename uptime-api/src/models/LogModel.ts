@@ -42,12 +42,11 @@ export const LogSchema = new Schema({
     },
     comment : {
         type: String,
-        required: 'Enter a detail',
         default: ''
     },
     takeIntoAccount : {
         type: Boolean,
-        required: 'Enter a detail',
+        required: 'Enter a takeIntoAccount',
         default: true
     }
 });
