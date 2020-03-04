@@ -86,7 +86,7 @@ export class UserController{
                 payload,
                 JWT_SECRET_KEY!,
                 {
-                    expiresIn: 86400
+                    expiresIn: 604800
                 },
                 (err, token) => {
                     if (err) throw err;
