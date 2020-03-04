@@ -54,7 +54,13 @@ export default {
     computed : {
         limitStart: {
             get:function(){
-                let start = moment(moment().format('X'), 'X').startOf('year').format('X');
+                let start;
+                let year = moment().format('YYYY');
+                if("year" in this.$route.params && parseInt(year) != this.$route.params.year)
+                    start = moment(this.$route.params.year, 'YYYY').startOf('year').format('X');
+                else 
+                    start = moment(moment().format('X'), 'X').startOf('year').format('X');
+                
                 return start;
             },
         },
@@ -122,7 +128,7 @@ export default {
                 this.$route.params.daysSelected = undefined;
             }
             if(vm.custom_interval[0] === "0" && vm.custom_interval[1] === "0")
-              vm.custom_interval[1] = "86399";  
+              vm.custom_interval[1] = "86400";  
 
             let data = {
                 "account":account,
