@@ -75,10 +75,10 @@
                                 Jours à exclure
                             </div>
                             <div class="card-body">
-                                    <div v-for="item in days" :val="item.val" :key="item.id"  class="form-check form-check-inline w-auto">
-                                        <input class="form-check-input" type="checkbox" :id="item.val" :value="item.val" v-model="daysSelected">
-                                        <label class="form-check-label" :for="item.val">{{item.name}}</label>
-                                    </div>
+                                <div v-for="item in days" :val="item.val" :key="item.id"  class="form-check form-check-inline w-auto">
+                                    <input class="form-check-input" type="checkbox" :id="item.val" :value="item.val" v-model="daysSelected">
+                                    <label class="form-check-label" :for="item.val">{{item.name}}</label>
+                                </div>
                             </div>
                         </div>
                     </div>

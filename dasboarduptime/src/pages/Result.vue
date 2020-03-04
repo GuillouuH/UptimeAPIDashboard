@@ -142,6 +142,9 @@ export default {
                     "ranges":vm.range
                 };
             }
+            if(vm.daysSelected.length > 0)
+                data["custom_days_range"] = vm.daysSelected;
+            
             let url = process.env.urlAPI+'siteslogs';
             let results =  await vm.getUptimeRequest(data, url);
 
