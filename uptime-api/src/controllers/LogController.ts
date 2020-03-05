@@ -101,145 +101,10 @@ export class LogController{
                     }
                 }
             });
-            //console.log(106082 - duplicateLogsToRemove.length)
             Log.deleteMany({_id : { $in: duplicateLogsToRemove}}, () => {
                 res.json({"message":"Delete done!"})
             });
         }).lean();
-    }
-
-    // Get log pour un intervalle donné
-    public async getLogInIntervalle(Site:string, start:number, end:number, logTypeDown:Array<any>, allLogType:Array<any>, downPauseType:Array<any>, rangeDuration:any){
-        let LogsRequest = Log.find(
-            {
-                Site : { $eq: Site}, 
-                datetime:{$lte:end, $gte:start}
-            }, 
-            {},
-            {
-                sort:{datetime:-1}
-            }
-        ).lean().exec();
-
-        let LastLogRequest = Log.findOne(
-            {
-                Site : { $eq: Site}, 
-                datetime:{$lte:start}
-            }, 
-            {},
-            {
-                sort:{datetime:-1}
-            }
-        ).lean().exec();
-        
-        try {
-            let logArray : any = [];
-            await Promise.all([LogsRequest, LastLogRequest]).then(async ([logrequest, lastlogrequest])=>{
-                for(var i = 0; i < logrequest.length; i++){
-                    if(logTypeDown.indexOf(logrequest[i].Type.toString()) > -1) {
-                        let tmpLog = {
-                            "_id":logrequest[i]._id,
-                            "site":logrequest[i].Site,
-                            "datetime":logrequest[i].datetime,
-                            "duration":logrequest[i].duration,
-                            "reason":{"code":logrequest[i].code,"detail":logrequest[i].detail},
-                            "type":allLogType[logrequest[i].Type],
-                            "comment":logrequest[i].comment,
-                            "takeIntoAccount":logrequest[i].takeIntoAccount
-                        }
-                        logArray.push(tmpLog)
-                    }
-                }
-                
-                if(logArray.length === 0){      
-                    if(lastlogrequest !== null && Object.entries(lastlogrequest).length > 0  && downPauseType.indexOf(lastlogrequest.Type.toString()) > -1){
-                        let tmpLog = {
-                            "_id":lastlogrequest._id,
-                            "site":lastlogrequest.Site,
-                            "datetime":lastlogrequest.datetime,
-                            "duration":lastlogrequest.duration,
-                            "reason":{"code":lastlogrequest.code,"detail":lastlogrequest.detail},
-                            "type":allLogType[lastlogrequest.Type],
-                            "comment":lastlogrequest.comment,
-                            "takeIntoAccount":lastlogrequest.takeIntoAccount
-                        }
-                        logArray = [tmpLog]
-                    }
-                }
-            },reason => {
-                console.log(reason)
-            })
-            
-            return {logs:logArray, rangeDuration:rangeDuration, start:start, end:end};
-        } catch(e){
-            console.log(e)
-        }
-
-    }
-
-    public async getAllLogSites(all_promise : Array<any>, custom_days_range:any, custom_interval:any, site:any){
-        try {
-            let uptime : any = [];
-            let allLogs : any = [];
-            await Promise.all(all_promise).then((promise_result:any) => {
-                promise_result.forEach((result : any) => {
-                    let logsSite = result.logs
-                    let rangeDuration = result.rangeDuration
-                    let start = result.start
-                    let end = result.end
-                    let durationLog : any = 0;
-                    logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, site._id)
-                    logsSite.sort((a : any, b : any) => a.datetime - b.datetime);                        
-                    logsSite.forEach((el : any, idx : any, array : any) => {    
-                        if(el === logsSite[logsSite.length-1]){
-                            el.duration = parseInt(moment().format("X")) - el.datetime
-                        } else {
-                            el.duration = logsSite[idx + 1].datetime - el.datetime
-                        }
-                        if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(end) && el.type === 1){
-                            durationLog = null
-                        } else {
-                            // Si le dernier log est un log de pause 
-                            if(el.datetime <= parseInt(start) && el.datetime + el.duration >= parseInt(start) && (el.type === 99) && el == logsSite[logsSite.length-1]){
-                                durationLog = null;
-                            } else if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(start) && el.type === 1){
-                                let duration = el.datetime + el.duration - parseInt(result.start); 
-                                durationLog = durationLog + duration
-                            }else if(el.datetime >= parseInt(start) && el.datetime <= parseInt(end) && el.type === 1){
-                                if(el.takeIntoAccount){
-                                    let duration = el.duration
-                                    if(el.datetime + el.duration > parseInt(end))
-                                        duration = parseInt(end) - el.datetime
-                                    durationLog = durationLog + duration
-                                }
-                                allLogs.push(el)
-                            } 
-                        }
-                        
-                    });
-                    
-                    if(parseInt(end) < site.createDatetime) {
-                        durationLog = null
-                    }
-                    if(durationLog == null){
-                        uptime.push("0.000")
-                    } else if( durationLog === 0) {
-                        uptime.push("100.000")
-                    }else {
-                        let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
-                        uptime.push(tmpUptime.toFixed(3))
-                    }
-
-                });
-
-            },reason => {
-                console.log(reason)
-            });
-            return {allLogsSite : allLogs, uptimeSite: uptime, site : site}
-
-        } catch(err){
-            console.log(err)
-        }
     }
 
     // Get logs for each Sites
@@ -358,14 +223,159 @@ export class LogController{
         }
     }
 
+    // Get log pour un intervalle donné
+    public async getLogInIntervalle(Site:string, start:number, end:number, logTypeDown:Array<any>, allLogType:Array<any>, downPauseType:Array<any>, rangeDuration:any){
+        let LogsRequest = Log.find(
+            {
+                Site : { $eq: Site}, 
+                datetime:{$lte:end, $gte:start}
+            }, 
+            {},
+            {
+                sort:{datetime:-1}
+            }
+        ).lean().exec();
+
+        let LastLogRequest = Log.findOne(
+            {
+                Site : { $eq: Site}, 
+                datetime:{$lte:start}
+            }, 
+            {},
+            {
+                sort:{datetime:-1}
+            }
+        ).lean().exec();
+        
+        try {
+            let logArray : any = [];
+            await Promise.all([LogsRequest, LastLogRequest]).then(async ([logrequest, lastlogrequest])=>{
+                for(var i = 0; i < logrequest.length; i++){
+                    if(logTypeDown.indexOf(logrequest[i].Type.toString()) > -1) {
+                        let tmpLog = {
+                            "_id":logrequest[i]._id,
+                            "site":logrequest[i].Site,
+                            "datetime":logrequest[i].datetime,
+                            "duration":logrequest[i].duration,
+                            "reason":{"code":logrequest[i].code,"detail":logrequest[i].detail},
+                            "type":allLogType[logrequest[i].Type],
+                            "comment":logrequest[i].comment,
+                            "takeIntoAccount":logrequest[i].takeIntoAccount
+                        }
+                        logArray.push(tmpLog)
+                    }
+                }
+                
+                if(logArray.length === 0){      
+                    if(lastlogrequest !== null && Object.entries(lastlogrequest).length > 0  && downPauseType.indexOf(lastlogrequest.Type.toString()) > -1){
+                        let tmpLog = {
+                            "_id":lastlogrequest._id,
+                            "site":lastlogrequest.Site,
+                            "datetime":lastlogrequest.datetime,
+                            "duration":lastlogrequest.duration,
+                            "reason":{"code":lastlogrequest.code,"detail":lastlogrequest.detail},
+                            "type":allLogType[lastlogrequest.Type],
+                            "comment":lastlogrequest.comment,
+                            "takeIntoAccount":lastlogrequest.takeIntoAccount
+                        }
+                        logArray = [tmpLog]
+                    }
+                }
+            },reason => {
+                console.log(reason)
+            })
+            
+            return {logs:logArray, rangeDuration:rangeDuration, start:start, end:end};
+        } catch(e){
+            console.log(e)
+        }
+
+    }
+
+    // Get all logs in for a site
+    public async getAllLogSites(all_promise : Array<any>, custom_days_range:any, custom_interval:any, site:any){
+        try {
+            let uptime : any = [];
+            let allLogs : any = [];
+            await Promise.all(all_promise).then((promise_result:any) => {
+                promise_result.forEach((result : any) => {
+                    let logsSite = result.logs
+                    let rangeDuration = result.rangeDuration
+                    let start = result.start
+                    let end = result.end
+                    let durationLog : any = 0;
+                    logsSite.sort((a : any, b : any) => a.datetime - b.datetime);                        
+                    logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, site._id)
+                    logsSite.forEach((el : any, idx : any, array : any) => {
+                        if(el === logsSite[logsSite.length-1]){
+                            el.duration = parseInt(moment().format("X")) - el.datetime
+                        } else {
+                            el.duration = logsSite[idx + 1].datetime - el.datetime
+                        }
+                        
+
+                        if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(end) && el.type === 1){
+                            durationLog = null
+                        } else {
+                            // Si le dernier log est un log de pause 
+                            if(el.datetime <= parseInt(start) && el.datetime + el.duration >= parseInt(start) && (el.type === 99) && el == logsSite[logsSite.length-1]){
+                                durationLog = null;
+                            } else if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(start) && el.type === 1){
+                                let duration = el.datetime + el.duration - parseInt(result.start); 
+                                durationLog = durationLog + duration
+                            }else if(el.datetime >= parseInt(start) && el.datetime <= parseInt(end) && el.type === 1){
+                                if(el.takeIntoAccount){
+                                    let duration = el.duration
+                                    if(el.datetime + el.duration > parseInt(end))
+                                        duration = parseInt(end) - el.datetime
+                                    durationLog = durationLog + duration
+                                }
+                                allLogs.push(el)
+                            } 
+                        }
+                        
+
+                    });
+                    
+                    if(parseInt(end) < site.createDatetime) {
+                        durationLog = null
+                    }
+                    if(durationLog == null){
+                        uptime.push("0.000")
+                    } else if( durationLog === 0) {
+                        uptime.push("100.000")
+                    }else {
+                        let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
+                        uptime.push(tmpUptime.toFixed(3))
+                    }
+
+                });
+
+            },reason => {
+                console.log(reason)
+            });
+            return {allLogsSite : allLogs, uptimeSite: uptime, site : site}
+
+        } catch(err){
+            console.log(err)
+        }
+    }
+
+    // Get logs into into interval filtering by days
     public getLogsWithDayAndInterval(logs:Array<any>, forbidenDay: Array<string>, intervals: Array<string>, id:string){
         let allLogs = []
         let momentTime = parseInt(moment().tz('Europe/Paris').format('X'));
-        if(intervals.length > 0 || forbidenDay.length) {
-            logs.forEach(el => {
+        if(intervals.length > 0 || forbidenDay.length > 0) {
+            logs.forEach((el : any, idx : any, array : any) => {
+                if(el === logs[logs.length-1]){
+                    el.duration = parseInt(moment().format("X")) - el.datetime
+                } else {
+                    el.duration = logs[idx + 1].datetime - el.datetime
+                }
                 if(el.type === 1) {
                     let startLog = el.datetime
                     let endLog = el.datetime + el.duration
+
                     while(endLog > startLog){
                         let duration:number
                         let startDay = parseInt(moment(endLog-1, 'X').tz('Europe/Paris').startOf("days").format('X'))
@@ -419,6 +429,7 @@ export class LogController{
         return allLogs;
     }
 
+    // get range duration
     public getDuration(start:number, end: number, forbidenDay: Array<string>, intervals: Array<string>){
         let total = 0
         while(end > start){
