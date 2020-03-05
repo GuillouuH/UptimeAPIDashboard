@@ -44,6 +44,12 @@
                                                 <div class="card border-primary"> 
                                                     <div class="card-body text-center">
                                                         <table class="table table-hover table-striped table-fixed table-sm" id="tableLogs">
+                                                            <thead>
+                                                                <template v-if="notificationGroupSite !== null">
+                                                                    <th>Type</th>
+                                                                    <th>Cible</th>
+                                                                </template>
+                                                            </thead>
                                                             <tbody>
                                                                 <template v-if="notificationGroupSite !== null">
                                                                     <tr v-for="cible in  notificationGroupSite.cibles" :key="cible.id">
@@ -53,7 +59,7 @@
                                                                 </template>
                                                                 <template v-else> 
                                                                     <tr>
-                                                                        <td>Aucune cible</td>
+                                                                        <td>Aucune notification</td>
                                                                     </tr>
                                                                 </template>
                                                             </tbody>
@@ -400,7 +406,7 @@ export default {
         }
     },
     methods : {
-        saveNotifications(){
+        saveNotifications: function(){
             console.log(this.notificationGroupSelected);
             let url = process.env.urlAPI+'notificationgroupssite?id='+this.$route.params.id;
             let data = {"group":this.notificationGroupSelected, "site":this.$route.params.id};
@@ -413,7 +419,7 @@ export default {
                 }
             });
         },
-        modifySelectedGroup(){
+        modifySelectedGroup: function(){
             let selectedGroup = null;
             
             if(this.notificationGroupSelected !== "")
@@ -421,7 +427,7 @@ export default {
             
             this.notificationGroupSite = selectedGroup;
         },
-        getNotificationGroupSite(){
+        getNotificationGroupSite: function(){
             let url = process.env.urlAPI+'notificationgroupssite?id='+this.$route.params.id;
             axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).then(resp => {
                 if(resp.data !== null){
@@ -430,7 +436,7 @@ export default {
                 }
             });
         },
-        getNotificationGroup(){
+        getNotificationGroup: function(){
             let url = process.env.urlAPI+'notificationgroups';
             axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).then(resp => {
                 this.notificationGroup = resp.data;
