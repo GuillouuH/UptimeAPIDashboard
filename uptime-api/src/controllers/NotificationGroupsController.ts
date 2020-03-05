@@ -28,4 +28,19 @@ export class NotificationGroupController{
             res.send({ message: "Error" });
         }
     }
+
+    public async setSiteNotificationGroup(req: any, res: any){
+        try {
+            let newNotificationGroup = req.body.group
+            let siteUpdate = await Site.findById(req.body.site);
+            let request:any = {NotificationGroup:newNotificationGroup};
+            if(newNotificationGroup == "")
+                request = {$unset: {NotificationGroup:1}}
+
+            await Site.findOneAndUpdate({_id:req.body.site}, request).exec();
+            res.json({success:true, message : "Update"});
+        } catch (err) {
+            res.send({success:false,message: "Error" });
+        }
+    }
 }

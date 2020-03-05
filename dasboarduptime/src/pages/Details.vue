@@ -402,6 +402,16 @@ export default {
     methods : {
         saveNotifications(){
             console.log(this.notificationGroupSelected);
+            let url = process.env.urlAPI+'notificationgroupssite?id='+this.$route.params.id;
+            let data = {"group":this.notificationGroupSelected, "site":this.$route.params.id};
+            axios.post(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+            then(response => {
+                if(response.data.success === false){
+                    alert("Une erreur s'est produite lors de l'enregistrement");
+                } else {
+                    alert("Enregistrement réussi");
+                }
+            });
         },
         modifySelectedGroup(){
             let selectedGroup = null;

@@ -81,7 +81,8 @@ export class Routes {
         
         app.route('/notificationgroupssite')
         .get(AuthenticateUser, this.notificationGroupController.getSiteNotificationGroup)
-    
+        .post(AuthenticateUser, this.notificationGroupController.setSiteNotificationGroup)
+        
         app.use(AuthenticateUser).route('/getmycredentials')  
         .get(AuthenticateUser, this.userController.getUserCredentials)
     

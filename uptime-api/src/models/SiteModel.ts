@@ -50,7 +50,7 @@ export const SiteSchema = new Schema({
         ref: 'Accounts' 
     },
     NotificationGroup:{
-        type:String
+        type:mongoose.Schema.Types.ObjectId
     },
     status: { 
         type: Number,
