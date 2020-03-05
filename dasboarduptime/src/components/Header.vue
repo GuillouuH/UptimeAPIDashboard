@@ -8,8 +8,14 @@
                     search: $route.params.search,
                     interval:$route.params.interval,
                     daysSelected:$route.params.daysSelected
-                }}"><a class="navbar-brand" href="#">Disponibilité - Statistiques</a></router-link>
-                <router-link v-else :to="{name:'Result'}"><a class="navbar-brand" href="#">Disponibilité - Statistiques</a></router-link>
+                }}">
+                    <a class="navbar-brand d-none d-sm-block" href="#">Disponibilité - Statistiques</a>
+                    <a class="navbar-brand d-block d-sm-none"  href="#">Dispo - Stats</a>
+                </router-link>
+                <router-link v-else :to="{name:'Result'}">
+                    <a class="navbar-brand d-none d-sm-block" href="#">Disponibilité - Statistiques</a>
+                    <a class="navbar-brand d-block d-sm-none"  href="#">Dispo - Stats</a>
+                </router-link>
                 <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>

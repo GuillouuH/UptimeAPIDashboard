@@ -15,14 +15,14 @@
                                 Dates
                             </div>
                             <div class="card-body">
-                                <div class="row">
-                                    <span class="col-md-2 align-middle text-form">Entre</span>
-                                    <div class="form-row col-md-4">  
-                                        <datepicker v-model="dateDebut" :value="dateDebut" :disabled-dates="disabledDates"></datepicker>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="inputEmail4">Entre</label>
+                                        <datepicker v-model="dateDebut" :value="dateDebut" :disabled-dates="disabledDates" bootstrap-styling full-month-name :language="fr"></datepicker>
                                     </div>
-                                    <span class="col-md-2 align-middle text-form">Et</span>
-                                    <div class="form-row col-md-4">  
-                                        <datepicker v-model="dateFin" :value="dateFin" :disabled-dates="disabledDates"></datepicker>
+                                    <div class="form-group col-md-6">
+                                        <label for="inputPassword4">Et</label>
+                                        <datepicker v-model="dateFin" :value="dateFin" :disabled-dates="disabledDates" bootstrap-styling full-month-name :language="fr"> </datepicker>
                                     </div>
                                 </div>
                             </div>
@@ -94,6 +94,7 @@
 <script>
 
 import Datepicker from 'vuejs-datepicker';
+import {es,fr} from 'vuejs-datepicker/dist/locale'
 
 export default {
     name: 'PlageHoraire',
@@ -103,6 +104,7 @@ export default {
     },
     data(){
         return{
+            fr:fr,
             firstHour:'00',
             firstMinute:'00',
             secondHour:'00',
