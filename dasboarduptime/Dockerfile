@@ -18,7 +18,7 @@ RUN npm install
 COPY . .
 
 RUN npm run build
-COPY ./dist/index.html ./dist/404.html
+RUN mv ./dist/index.html ./dist/404.html
 
 EXPOSE 8080
 CMD [ "./node_modules/.bin/http-server", "./dist" ]
