@@ -23,8 +23,52 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="card border-primary">
+                                    <div class="card-header">
+                                        <div class="col-xs-9 text-center">
+                                            <strong>Notifications</strong>
+                                        </div>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="row">
+                                            <div class="col-lg-4">
+                                                <select class="custom-select" v-model="notificationGroupSelected" v-on:change="modifySelectedGroup">
+                                                    <option value="">Aucun</option>
+                                                    <option v-for="group in notificationGroup" :key="group.id" :value="group._id">{{group.name}}</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-lg-8">
+                                                <div class="card border-primary"> 
+                                                    <div class="card-body text-center">
+                                                        <table class="table table-hover table-striped table-fixed table-sm" id="tableLogs">
+                                                            <tbody>
+                                                                <template v-if="notificationGroupSite !== null">
+                                                                    <tr v-for="cible in  notificationGroupSite.cibles" :key="cible.id">
+                                                                        <td>{{cible.type}}</td>
+                                                                        <td>{{cible.cible}}</td>
+                                                                    </tr>
+                                                                </template>
+                                                                <template v-else> 
+                                                                    <tr>
+                                                                        <td>Aucune cible</td>
+                                                                    </tr>
+                                                                </template>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-center">
+                                            <button type="button" class="btn btn-success btn-lg" @click="saveNotifications">Enregistrer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="table-year">
@@ -307,8 +351,16 @@ export default {
             date: null,
             currenttimestamp:moment().format('X'),
             logs_array : [],
-            modified_logs : []
+            modified_logs : [],
+            notificationGroupSite: null,
+            notificationGroup: null,
+            notificationGroupSelected:""
         };
+    },
+    mounted(){
+        this.getData();
+        this.getNotificationGroupSite();
+        this.getNotificationGroup();
     },
     computed: {
         weekRange :{
@@ -333,7 +385,7 @@ export default {
                 let weekRange = yearRange+"-"+fourthWeek+"-"+thirdWeek+"-"+secondWeek+"-"+firstWeek;
                 return weekRange;
             }
-        }
+        },
     },
     filters: {
         formatNumber (value) {
@@ -347,13 +399,31 @@ export default {
             return moment(value, 'X').locale('fr').format('L HH:mm:ss');
         }
     },
-    created(){
-        this.getData();
-    },
-    watch: {
-        '$route': 'getData'
-    },
     methods : {
+        saveNotifications(){
+            console.log(this.notificationGroupSelected);
+        },
+        modifySelectedGroup(){
+            let selectedGroup = null;
+            
+            if(this.notificationGroupSelected !== "")
+                selectedGroup = this.notificationGroup.find(e => e._id === this.notificationGroupSelected)
+            
+            this.notificationGroupSite = selectedGroup;
+        },
+        getNotificationGroupSite(){
+            let url = process.env.urlAPI+'notificationgroupssite';
+            axios.post(url, {"site":[this.$route.params.id]}, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).then(resp => {
+                this.notificationGroupSite = resp.data;
+                this.notificationGroupSelected = resp.data._id
+            });
+        },
+        getNotificationGroup(){
+            let url = process.env.urlAPI+'notificationgroups';
+            axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).then(resp => {
+                this.notificationGroup = resp.data;
+            });
+        },
         getData: async function(){
             let vm = this;
             vm.getRange();
@@ -407,7 +477,7 @@ export default {
                 "custom_interval":vm.$route.params.interval,
                 "custom_days_range":vm.$route.params.daysSelected
             }
-            if(vm.$route.params.interval[0] === "0" && vm.$route.params.interval[1] === "86400"){
+            if(typeof vm.$route.params.interval != "undefined" && vm.$route.params.interval[0] === "0" && vm.$route.params.interval[1] === "86400"){
                 data = {
                     "site":[vm.$route.params.id],
                     "ranges":this.weekRange
