@@ -438,9 +438,14 @@ export class LogController{
             let endInterval:number
             if(intervals.length > 0){
                 startInterval = parseInt(moment(startElement, 'X').tz('Europe/Paris').add(parseInt(intervals[0]), 'seconds').format('X'))
-                endInterval = parseInt(moment(startElement, 'X').tz('Europe/Paris').add(parseInt(intervals[1]), 'seconds').format('X'))
+                endInterval = parseInt(moment(startElement, 'X').tz('Europe/Paris').add(parseInt(intervals[1]), 'seconds').format('X'))                    
+
                 if(endInterval > end)
                     endInterval = end
+                
+                if(startInterval > end)
+                    startInterval = end
+
             } else {
                 startInterval = parseInt(moment(end-1, 'X').tz('Europe/Paris').startOf("days").format('X'))
                 endInterval = end
@@ -448,8 +453,9 @@ export class LogController{
             let duration:number
             if(startInterval < start)
                 startInterval  = start
+                
             duration = endInterval - startInterval
-            
+
             total = total + duration
             if(forbidenDay.length > 0 && forbidenDay.indexOf(moment(startElement, 'X').tz('Europe/Paris').endOf('day').locale('en').format('dddd').toLowerCase()) > -1){
                 total = total - duration
