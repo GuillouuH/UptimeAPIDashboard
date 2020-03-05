@@ -262,9 +262,8 @@ export default {
             var value = this.favorites.find(e => e._id === val)
             var index = this.favorites.indexOf(value);
             if (index > -1) {
-                let data = {"id":val};
-                let url = process.env.urlAPI+'favorites';
-                axios.delete(url, {data: data}, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+                let url = process.env.urlAPI+'favorites?id='+val;
+                axios.delete(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
                 then(function (response) {
                     vm.favorites.splice(index, 1);
                 });

@@ -29,7 +29,11 @@ export class Routes {
                 message: 'GET request successfulll!!!!'
             })
         })
-        
+
+                
+        app.route('/userLogin')    
+        .post(this.userController.userLogin)
+    
         app.route('/updateData')
         .post(AuthenticateUser, this.updateDataController.saveAllSites);
         
@@ -67,9 +71,6 @@ export class Routes {
 
         app.route('/addUser')
         .post(AuthenticateUser, this.userController.addUSer);
-        
-        app.route('/userLogin')    
-        .post(this.userController.userLogin)
 
         app.route('/favorites')
         .get(AuthenticateUser, this.favoriteController.listFavorite)

@@ -26,7 +26,7 @@ export class FavoriteController{
     }
 
     public deleteFavorite(req: Request, res: Response) {
-        let id = req.body.id;
+        let id = req.query.id;
         let DeleteFavorite = Favorite.deleteOne({_id:id}).exec();
         Promise.all([DeleteFavorite]).then(favorite =>{
             let data = {'State':'success', 'Message':'Favorite deleted successfully'}
