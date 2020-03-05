@@ -44,9 +44,11 @@ export default {
             endDate: null
         };
     },
+    mounted(){
+        this.getFavorite();
+    },
     created(){
         this.getData();
-        this.getFavorite();
     },
     watch: {
         '$route': 'getData'
@@ -277,7 +279,6 @@ export default {
                 vm.favorites.push(response.data)
             });
         },
-
         pauseMonitor: function(id){
             let vm = this;
             let url = process.env.urlAPI+'pauseSite';
@@ -289,7 +290,6 @@ export default {
                 
             });
         },
-
         continueMonitor: function(id){
             let vm = this;
             let url = process.env.urlAPI+'continueSite';
@@ -302,7 +302,6 @@ export default {
                     siteConcerned.status = 2;
             });
         },
-
         removeAccent : function(val){
             val = val.replace(/[ÁÀÄÂ]/g, "A");
             val = val.replace(/[ÉÈËÊ]/g, "E");
