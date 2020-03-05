@@ -8,6 +8,7 @@ export interface ISite extends mongoose.Document {
     url: string;
     createDatetime: number;
     Account:number;
+    NotificationGroup:string;
     status: number;
     lastlog: number;
     ssl_monitored: boolean;
@@ -47,6 +48,9 @@ export const SiteSchema = new Schema({
     Account: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Accounts' 
+    },
+    NotificationGroup:{
+        type:String
     },
     status: { 
         type: Number,
