@@ -412,8 +412,8 @@ export default {
             this.notificationGroupSite = selectedGroup;
         },
         getNotificationGroupSite(){
-            let url = process.env.urlAPI+'notificationgroupssite';
-            axios.post(url, {"site":[this.$route.params.id]}, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).then(resp => {
+            let url = process.env.urlAPI+'notificationgroupssite?id='+this.$route.params.id;
+            axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).then(resp => {
                 if(resp.data !== null){
                     this.notificationGroupSite = resp.data;
                     this.notificationGroupSelected = resp.data._id

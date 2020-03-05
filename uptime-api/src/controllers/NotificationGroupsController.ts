@@ -20,7 +20,7 @@ export class NotificationGroupController{
 
     public async getSiteNotificationGroup(req: any, res: any){
         try {
-            let siteMap = await Site.findById(req.body.site);
+            let siteMap = await Site.findById(req.query.id);
             let notificationGroup = siteMap!.NotificationGroup;
             let notificationGroupMap = await NotificationGroups.findById(notificationGroup);
             res.json(notificationGroupMap);
