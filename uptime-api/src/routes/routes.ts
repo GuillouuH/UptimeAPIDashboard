@@ -7,6 +7,7 @@ import { LogTypeController } from "../controllers/LogTypeController";
 import { LogController } from "../controllers/LogController";
 import { UserController } from "../controllers/UserController";
 import { FavoriteController } from "../controllers/FavoriteController"
+import { NotificationGroupController } from "../controllers/NotificationGroupsController"
 
 import { AuthenticateUser } from "../middlewares/authentication"
 
@@ -19,6 +20,7 @@ export class Routes {
     public logController: LogController = new LogController()
     public userController: UserController = new UserController()
     public favoriteController: FavoriteController = new FavoriteController()
+    public notificationGroupController: NotificationGroupController = new NotificationGroupController()
 
     public routes(app: any): void {          
         app.route('/')
@@ -73,6 +75,9 @@ export class Routes {
         .get(AuthenticateUser, this.favoriteController.listFavorite)
         .post(AuthenticateUser, this.favoriteController.addFavorite)
         .delete(AuthenticateUser, this.favoriteController.deleteFavorite);
+        
+        app.route('/notificationgroups')
+        .get(AuthenticateUser, this.notificationGroupController.getNotificationGroup)
         
         app.use(AuthenticateUser).route('/getmycredentials')  
         .get(AuthenticateUser, this.userController.getUserCredentials)
