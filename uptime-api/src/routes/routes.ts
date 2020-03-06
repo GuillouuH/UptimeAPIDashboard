@@ -41,6 +41,9 @@ export class Routes {
         .get(AuthenticateUser, this.accountController.getAccounts)
         .post(AuthenticateUser, this.accountController.addAccount);
         
+        app.route('/sitesbyaccount')
+        .get(AuthenticateUser, this.accountController.getSitesByAccount)
+
         app.route('/accountype')
         .get(AuthenticateUser, this.accountTypeController.getAccountType)
         .post(AuthenticateUser, this.accountTypeController.addAccountType);

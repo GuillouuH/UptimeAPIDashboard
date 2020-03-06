@@ -34,7 +34,7 @@
                                     </div>
                                     <div class="card-body text-center">
                                         <div class="row">
-                                            <div class="col-lg-4">
+                                            <div class="col-lg-4 pb-4">
                                                 <select class="custom-select" v-model="notificationGroupSelected" v-on:change="modifySelectedGroup">
                                                     <option value="">Aucun</option>
                                                     <option v-for="group in notificationGroup" :key="group.id" :value="group._id">{{group.name}}</option>
@@ -69,7 +69,7 @@
                                             </div>
                                         </div>
                                         <div class="d-flex justify-content-center">
-                                            <button type="button" class="btn btn-success btn-lg" @click="saveNotifications">Enregistrer</button>
+                                            <button type="button" class="btn btn-primary btn-lg" @click="saveNotifications">Enregistrer</button>
                                         </div>
                                     </div>
                                 </div>
@@ -208,7 +208,7 @@
                                                     <tr>
                                                         <td colspan="12">
                                                             <div class="d-flex justify-content-center">
-                                                                <button type="button" class="btn btn-success btn-lg" @click="saveLog">Enregistrer</button>
+                                                                <button type="button" class="btn btn-primary btn-lg" @click="saveLog">Enregistrer</button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -407,7 +407,6 @@ export default {
     },
     methods : {
         saveNotifications: function(){
-            console.log(this.notificationGroupSelected);
             let url = process.env.urlAPI+'notificationgroupssite?id='+this.$route.params.id;
             let data = {"group":this.notificationGroupSelected, "site":this.$route.params.id};
             axios.post(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).

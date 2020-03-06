@@ -4,6 +4,12 @@ import Result from '@/pages/Result.vue'
 import Details from '@/pages/Details.vue'
 import Dashboard from '@/pages/Dashboard.vue'
 import Login from '@/pages/Login.vue'
+import Admin from '@/pages/Admin.vue'
+import AdminSite from '@/pages/AdminSite.vue'
+import AdminAccount from '@/pages/AdminAccount.vue'
+import AdminNotification from '@/pages/AdminNotification.vue'
+import AdminUser from '@/pages/AdminUser.vue'
+
 import axios from 'axios'
 import  * as jwt from 'jsonwebtoken';
 
@@ -51,6 +57,62 @@ const router =  new Router({
             component:Dashboard,
             meta: { 
                 requiresAuth: true
+            }
+        },
+        {
+            path: '/admin/',
+            name: 'Admin',
+            component:Admin,
+            meta: { 
+                requiresAuth: true
+            }
+        },
+        {
+            path: '/admin/sites',
+            name: 'AdminSite',
+            component:AdminSite,
+            meta: { 
+                requiresAuth: true,
+                breadcrumb : [
+                    {name:'Acceuil', link:Admin},
+                    {name:'Sites'}
+                ]
+            }
+        },
+        {
+            path: '/admin/accounts',
+            name: 'AdminAccount',
+            component:AdminAccount,
+            meta: { 
+                requiresAuth: true,
+                breadcrumb : [
+                    {name:'Acceuil', link:Admin},
+                    {name:'Comptes'}
+                ]
+            }
+        },
+        {
+            path: '/admin/users',
+            name: 'AdminUser',
+            component:AdminUser,
+            meta: { 
+                requiresAuth: true,
+                breadcrumb : [
+                    {name:'Acceuil', link:Admin},
+                    {name:'Utilisateurs'}
+                ]
+            }
+        },
+        {
+            path: '/admin/notifications',
+            name: 'AdminNotifications',
+            component:AdminNotification,
+            meta: { 
+                requiresAuth: true,
+                breadcrumb : [
+                    {name:'Acceuil', link:Admin},
+                    {name:'Notifications'}
+                ]
             }
         },
         {

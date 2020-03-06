@@ -2,8 +2,10 @@
 import * as mongoose from 'mongoose';
 import { AccountSchema } from '../models/AccountModel';
 import { Request, Response } from 'express';
+import { SiteSchema, ISite } from '../models/SiteModel';
 
 const Account = mongoose.model('Accounts', AccountSchema);
+const Site = mongoose.model<ISite>('Site', SiteSchema);
 
 export class AccountController{
     public addAccount (req: Request, res: Response) {                
@@ -24,5 +26,14 @@ export class AccountController{
             }
             res.json(account);
         }).populate('Type');
+    }
+
+    public async getSitesByAccount(req: Request, res: Response) {    
+        try {
+            let siteMap = await Site.find({Account:req.query.id});
+            res.json(siteMap);
+        } catch (err) {
+            res.send({ message: "Error" });
+        }
     }
 }
