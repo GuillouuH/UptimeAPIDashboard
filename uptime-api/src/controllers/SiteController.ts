@@ -22,7 +22,17 @@ export class SiteController{
         });
     }
 
-    public async addSiteWithLog (req: Request, res: Response) {                
+    public async editSite (req: Request, res: Response) {        
+        try {
+            let request:any = {name:req.body.name, url:req.body.url, Account:req.body.account};
+            await Site.findOneAndUpdate({_id:req.body.id}, request).exec();
+            res.json({success:true, message : "Update"});
+        } catch (err) {
+            res.send({success:false,message: "Error" });
+        }
+    }
+
+    public async addSiteWithLog (req: Request, res: Response) {
         try {
             let account = await Account.findOne({_id:req.body.account});
             let siteToAdd = {name : req.body.name, url : req.body.url, createDatetime : moment().format("X"), Account : account!._id, status:1}

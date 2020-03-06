@@ -1,5 +1,6 @@
 <template>
     <div id="adminsite">   
+        <EditModal :site="siteEdited" :accounts="accounts" @saveEdit="saveEdit"></EditModal>
         <AdminHeader></AdminHeader>
         <div class="container-fluid m-2">
             <AdminBreadcrumb :data="breadcrumb"></AdminBreadcrumb>
@@ -27,7 +28,7 @@
                             <td class="text-left"><a :href="site.url" target="_blank">{{site.url}}</a></td>
                             <td class="text-right">
                                 <div class="btn-group float-right" role="group">
-                                    <button type="button" class="btn btn-secondary"><span class="fas fa-pencil-alt mr-2" aria-hidden="true"></span>Editer</button>
+                                    <button type="button" class="btn btn-secondary" @click="editSite" :data-id="site._id"><span class="fas fa-pencil-alt mr-2" aria-hidden="true"></span>Editer</button>
                                     <button type="button" class="btn btn-danger"><span class="fas fa-trash-alt mr-2" aria-hidden="true"></span>Modifier</button>
                                 </div>
                             </td>
@@ -40,20 +41,22 @@
 </template>
 <script>
 import AdminHeader from '@/components/Admin/Header';
+import EditModal from '@/components/Admin/EditModal';
 import AdminBreadcrumb from '@/components/Admin/Breadcrumb';
 import axios from 'axios'
 
 export default {
     name: 'AdminSite',
     components: {
-        AdminHeader, AdminBreadcrumb
+        AdminHeader, AdminBreadcrumb, EditModal
     },
     data(){
         return {
             breadcrumb : this.$route.meta.breadcrumb,
             accounts : null,
             sites : null,
-            selectedAccount: 0
+            selectedAccount: 0,
+            siteEdited : {id:"", name:"", url:"", account:""}
         }
     },
     mounted(){
@@ -76,6 +79,31 @@ export default {
                     this.sites = response.data
                 });
             }
+        },
+        editSite: function(e){
+            let siteId = e.currentTarget.getAttribute("data-id");
+            let siteConcerned = this.sites.find(e => e._id === siteId)
+            this.siteEdited.id = siteConcerned._id;
+            this.siteEdited.name = siteConcerned.name;
+            this.siteEdited.url = siteConcerned.url;
+            this.siteEdited.account = siteConcerned.Account;
+            $('.modal').modal('show')
+        },
+        saveEdit: function(e){
+            let url = process.env.urlAPI+'sites';
+            axios.put(url, this.siteEdited, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+            then(response => {
+                if(response.data.success === false){
+                    alert("Une erreur est survenue");
+                    $('.modal').modal('hide')
+                } else {
+                    $('.modal').modal('hide');
+                    let siteConcerned = this.sites.find(e => e._id === this.siteEdited.id)
+                    siteConcerned.name = this.siteEdited.name;
+                    siteConcerned.url = this.siteEdited.url;
+                    siteConcerned.Account = this.siteEdited.account;
+                }
+            });
         }
     }
 }

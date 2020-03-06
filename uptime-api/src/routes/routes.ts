@@ -50,6 +50,7 @@ export class Routes {
 
         app.route('/sites')
         .get(AuthenticateUser, this.siteController.getSite)
+        .put(AuthenticateUser, this.siteController.editSite)
         .post(AuthenticateUser, this.siteController.addSiteWithLog)
         .delete(AuthenticateUser, this.siteController.deleteSites)
 
