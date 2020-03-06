@@ -1,7 +1,6 @@
 <template>
     <div class="header">
         <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark tablesortable" role="navigation">
-            <div class="container">
                 <router-link v-if="options.hasSearch == false" :to="{name:'Result', params:{
                     id:$route.params.idAccount,
                     year: date,
@@ -76,9 +75,7 @@
                         </div>
                     </template>
                     <button v-if="options.hasCsv == true" class="btn btn-outline-danger my-2 my-sm-0" type="" @click.prevent="logout">Déconnexion</button>
-
                 </div>
-            </div>
         </nav>
     </div>
 </template>

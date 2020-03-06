@@ -1,5 +1,6 @@
 <template>
-    <div id="adminsite">   
+    <div id="adminsite">
+        <Toast ref="toastComponent"></Toast>
         <EditModal :site="siteEdited" :accounts="accounts" @saveEdit="saveEdit"></EditModal>
         <AdminHeader></AdminHeader>
         <div class="container-fluid m-2">
@@ -14,27 +15,29 @@
                         </select>
                     </div>
                 </div>
-                <table v-if="sites !== null" class="table-fixed table table-hover table-striped table-lg" id="data">
-                    <thead class="table-header">
-                        <tr>
-                            <th class="w-25 text-left" scope="col">Nom</th>
-                            <th class="w-50 text-left">Url</th>
-                            <th class="w-25 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(site, idx) in sites" :key="idx">
-                            <td class="text-left">{{site.name}}</td>
-                            <td class="text-left"><a :href="site.url" target="_blank">{{site.url}}</a></td>
-                            <td class="text-right">
-                                <div class="btn-group float-right" role="group">
-                                    <button type="button" class="btn btn-secondary" @click="editSite" :data-id="site._id"><span class="fas fa-pencil-alt mr-2" aria-hidden="true"></span>Editer</button>
-                                    <button type="button" class="btn btn-danger"><span class="fas fa-trash-alt mr-2" aria-hidden="true"></span>Modifier</button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table v-if="sites !== null" class="table-fixed table table-hover table-striped table-lg" id="data">
+                        <thead class="table-header">
+                            <tr>
+                                <th class="text-left w-25" scope="col">Nom</th>
+                                <th class="text-left w-50">Url</th>
+                                <th class="text-right w-25">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results">
+                            <tr v-for="(site, idx) in sites" :key="idx">
+                                <td class="text-left">{{site.name}}</td>
+                                <td class="text-left"><a :href="site.url" target="_blank">{{site.url}}</a></td>
+                                <td class="text-right">
+                                    <div class="btn-group float-right" role="group">
+                                        <button type="button" class="btn btn-secondary" @click="editSite" :data-id="site._id"><span class="fas fa-pencil-alt mr-2" aria-hidden="true"></span>Editer</button>
+                                        <button type="button" class="btn btn-danger"><span class="fas fa-trash-alt mr-2" aria-hidden="true"></span>Modifier</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -43,12 +46,14 @@
 import AdminHeader from '@/components/Admin/Header';
 import EditModal from '@/components/Admin/EditModal';
 import AdminBreadcrumb from '@/components/Admin/Breadcrumb';
+import Toast from '@/components/Admin/Toast';
+
 import axios from 'axios'
 
 export default {
     name: 'AdminSite',
     components: {
-        AdminHeader, AdminBreadcrumb, EditModal
+        AdminHeader, AdminBreadcrumb, EditModal, Toast
     },
     data(){
         return {
@@ -102,6 +107,7 @@ export default {
                     siteConcerned.name = this.siteEdited.name;
                     siteConcerned.url = this.siteEdited.url;
                     siteConcerned.Account = this.siteEdited.account;
+                    this.$refs.toastComponent.openToast();
                 }
             });
         }
