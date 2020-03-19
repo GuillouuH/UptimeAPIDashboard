@@ -1,7 +1,7 @@
 <template>
     <div id="adminsite">
         <Toast ref="toastComponent"></Toast>
-        <EditModal :site="siteEdited" :accounts="accounts" @saveEdit="saveEdit"></EditModal>
+        <EditSiteModal :site="siteEdited" :accounts="accounts" :notificationgroups="notificationgroups" @saveEdit="saveEdit"></EditSiteModal>
         <AdminHeader></AdminHeader>
         <div class="container-fluid m-2">
             <AdminBreadcrumb :data="breadcrumb"></AdminBreadcrumb>
@@ -27,11 +27,11 @@
                         <tbody id="results">
                             <tr v-for="(site, idx) in sites" :key="idx">
                                 <td class="text-left">{{site.name}}</td>
-                                <td class="text-left"><a :href="site.url" target="_blank">{{site.url}}</a></td>
+                                <td class="text-left "><a class="d-inline-block text-truncate" :href="site.url" target="_blank">{{site.url}}</a></td>
                                 <td class="text-right">
                                     <div class="btn-group float-right" role="group">
-                                        <button type="button" class="btn btn-secondary" @click="editSite" :data-id="site._id"><span class="fas fa-pencil-alt mr-2" aria-hidden="true"></span>Editer</button>
-                                        <button type="button" class="btn btn-danger"><span class="fas fa-trash-alt mr-2" aria-hidden="true"></span>Modifier</button>
+                                        <button type="button" class="btn btn-secondary d-inline" @click="editSite" :data-id="site._id"><span class="fas fa-pencil-alt" aria-hidden="true"></span></button>
+                                        <button type="button" class="btn btn-danger"><span class="fas fa-trash-alt" aria-hidden="true"></span></button>
                                     </div>
                                 </td>
                             </tr>
@@ -44,7 +44,7 @@
 </template>
 <script>
 import AdminHeader from '@/components/Admin/Header';
-import EditModal from '@/components/Admin/EditModal';
+import EditSiteModal from '@/components/Admin/EditSiteModal';
 import AdminBreadcrumb from '@/components/Admin/Breadcrumb';
 import Toast from '@/components/Admin/Toast';
 
@@ -53,19 +53,21 @@ import axios from 'axios'
 export default {
     name: 'AdminSite',
     components: {
-        AdminHeader, AdminBreadcrumb, EditModal, Toast
+        AdminHeader, AdminBreadcrumb, EditSiteModal, Toast
     },
     data(){
         return {
             breadcrumb : this.$route.meta.breadcrumb,
             accounts : null,
+            notificationgroups: null,
             sites : null,
             selectedAccount: 0,
-            siteEdited : {id:"", name:"", url:"", account:""}
+            siteEdited : {id:"", name:"", url:"", account:"", notificationgroup: ""}
         }
     },
     mounted(){
         this.getAccounts()
+        this.getNotificationGroups()
     },
     methods :{
         getAccounts: function(){
@@ -73,6 +75,13 @@ export default {
             axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
             then(response => {
                 this.accounts = response.data
+            });
+        },
+        getNotificationGroups : function(){
+            let url = process.env.urlAPI+'notificationgroups';
+            axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+            then(resp => {
+                this.notificationgroups = resp.data;
             });
         },
         modifySelectedAccount: function(){
@@ -92,6 +101,8 @@ export default {
             this.siteEdited.name = siteConcerned.name;
             this.siteEdited.url = siteConcerned.url;
             this.siteEdited.account = siteConcerned.Account;
+            this.siteEdited.notificationgroup = siteConcerned.NotificationGroup
+            console.log(this.siteEdited)
             $('.modal').modal('show')
         },
         saveEdit: function(e){
@@ -107,6 +118,7 @@ export default {
                     siteConcerned.name = this.siteEdited.name;
                     siteConcerned.url = this.siteEdited.url;
                     siteConcerned.Account = this.siteEdited.account;
+                    siteConcerned.NotificationGroup = this.siteEdited.notificationgroup
                     this.$refs.toastComponent.openToast();
                 }
             });

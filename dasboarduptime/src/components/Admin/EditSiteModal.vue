@@ -25,6 +25,13 @@
                                 <option v-for="(account, idx) in accounts" :key="idx" :value="account._id">{{account.email}}</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="siteNotificationGroup">Compte</label>
+                            <select class="form-control" id="selectnotificationgroup" v-model="site.notificationgroup">
+                                <option value="0">-</option>
+                                <option v-for="(notificationgroup, idx) in notificationgroups" :key="idx" :value="notificationgroup._id">{{notificationgroup.name}}</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" @click="saveEdit">Enregistrer</button>
@@ -36,8 +43,8 @@
 </template>
 <script>
 export default {
-    name: 'EditModal',
-    props: ['site', 'accounts'],
+    name: 'EditSiteModal',
+    props: ['site', 'accounts', 'notificationgroups'],
     methods : {
         saveEdit : function(){
             this.$emit('saveEdit');
