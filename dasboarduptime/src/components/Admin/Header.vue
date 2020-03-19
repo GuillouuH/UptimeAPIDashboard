@@ -1,7 +1,9 @@
 <template>
     <div class="admin_header">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" role="navigation">
-            <a class="navbar-brand" href="#">Administration</a>
+            <router-link to="/admin/" class="navbar-brand">
+                Administration
+            </router-link >
             <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>

@@ -13,6 +13,8 @@
 import AdminHeader from '@/components/Admin/Header';
 import AdminBreadcrumb from '@/components/Admin/Breadcrumb';
 
+import axios from 'axios'
+
 export default {
     name: 'AdminNoitification',
     components: {
@@ -20,7 +22,21 @@ export default {
     },
     data(){
         return {
-            breadcrumb : this.$route.meta.breadcrumb
+            breadcrumb : this.$route.meta.breadcrumb,
+            notificationgroups: null
+        }
+    },
+    mounted(){
+        this.getNotificationGroups()
+    },
+    methods: {
+        getNotificationGroups : function(){
+            let url = process.env.urlAPI+'notificationgroups';
+            axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+            then(resp => {
+                console.log(resp.data)
+                this.notificationgroups = resp.data;
+            });
         }
     }
 }

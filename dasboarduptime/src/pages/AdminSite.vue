@@ -1,11 +1,14 @@
 <template>
     <div id="adminsite">
         <Toast ref="toastComponent"></Toast>
-        <EditSiteModal :site="siteEdited" :accounts="accounts" :notificationgroups="notificationgroups" @saveEdit="saveEdit"></EditSiteModal>
+        <EditSiteModal :site="siteEdited" :accounts="accounts" :notificationgroups="notificationgroups" :isEdited="isEdited" @saveEdit="saveEdit" @saveAdd="saveAdd"></EditSiteModal>
         <AdminHeader></AdminHeader>
         <div class="container-fluid m-2">
             <AdminBreadcrumb :data="breadcrumb"></AdminBreadcrumb>
             <div class="card border-primary p-4">
+                <div class="float-right">
+                    <button type="button" class="btn btn-success float-right"  @click="addSite"><span class="fas fa-plus" aria-hidden="true"></span></button>
+                </div>
                 <div class="row">
                     <div class="col-12 form-group">
                         <label for="selectaccount">Séléctionner un compte</label>
@@ -62,7 +65,8 @@ export default {
             notificationgroups: null,
             sites : null,
             selectedAccount: 0,
-            siteEdited : {id:"", name:"", url:"", account:"", notificationgroup: ""}
+            siteEdited : {id:"", name:"", url:"", account:"0", notificationgroup: "0"},
+            isEdited : true
         }
     },
     mounted(){
@@ -86,42 +90,86 @@ export default {
         },
         modifySelectedAccount: function(){
             this.sites = null
-            if(this.selectedAccount != ""){
+            console.log(this.selectedAccount)
+            if(this.selectedAccount != 0){
                 let url = process.env.urlAPI+'sitesbyaccount?id='+this.selectedAccount
                 axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
                 then(response => {
                     this.sites = response.data
                 });
+            } else {
+                this.sites = null
             }
         },
+        addSite: function(e){
+            this.isEdited = false;
+            this.siteEdited = {id:"", name:"", url:"", account:"0", notificationgroup: "0"}
+            $('.modal').modal('show')
+        },
         editSite: function(e){
+            this.siteEdited = {id:"", name:"", url:"", account:"0", notificationgroup: "0"}
             let siteId = e.currentTarget.getAttribute("data-id");
             let siteConcerned = this.sites.find(e => e._id === siteId)
             this.siteEdited.id = siteConcerned._id;
             this.siteEdited.name = siteConcerned.name;
             this.siteEdited.url = siteConcerned.url;
             this.siteEdited.account = siteConcerned.Account;
-            this.siteEdited.notificationgroup = siteConcerned.NotificationGroup
-            console.log(this.siteEdited)
+            this.siteEdited.notificationgroup = siteConcerned.NotificationGroup;
+            this.isEdited = true;
             $('.modal').modal('show')
         },
         saveEdit: function(e){
-            let url = process.env.urlAPI+'sites';
-            axios.put(url, this.siteEdited, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
-            then(response => {
-                if(response.data.success === false){
-                    alert("Une erreur est survenue");
-                    $('.modal').modal('hide')
-                } else {
-                    $('.modal').modal('hide');
-                    let siteConcerned = this.sites.find(e => e._id === this.siteEdited.id)
-                    siteConcerned.name = this.siteEdited.name;
-                    siteConcerned.url = this.siteEdited.url;
-                    siteConcerned.Account = this.siteEdited.account;
-                    siteConcerned.NotificationGroup = this.siteEdited.notificationgroup
-                    this.$refs.toastComponent.openToast();
-                }
-            });
+            if(this.checkIfSiteOk()){
+                let url = process.env.urlAPI+'sites';
+                axios.put(url, this.siteEdited, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+                then(response => {
+                    if(response.data.success === false){
+                        alert("Une erreur est survenue");
+                        $('.modal').modal('hide')
+                    } else {
+                        $('.modal').modal('hide');
+                        let siteConcerned = this.sites.find(e => e._id === this.siteEdited.id)
+                        siteConcerned.name = this.siteEdited.name;
+                        siteConcerned.url = this.siteEdited.url;
+                        siteConcerned.Account = this.siteEdited.account;
+                        siteConcerned.NotificationGroup = this.siteEdited.notificationgroup
+                        this.$refs.toastComponent.openToast();
+                    }
+                });
+            }
+        },
+        saveAdd: function(e){
+            if(this.checkIfSiteOk()){
+                let url = process.env.urlAPI+'sites';
+                axios.post(url, this.siteEdited, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+                then(response => {
+                    if(response.data.success === false){
+                        alert("Une erreur est survenue");
+                        $('.modal').modal('hide')
+                    } else {
+                        $('.modal').modal('hide');
+                        this.sites.push(response.data)
+                        this.$refs.toastComponent.openToast();
+                    }
+                });
+            }
+        },
+        checkIfSiteOk: function(){
+            let errors = []
+            console.log(this.siteEdited.account)
+            if(this.siteEdited.name === "")
+                errors.push("Vous devez renseigner un nom");
+            if(this.siteEdited.url === "")
+                errors.push("Vous devez renseigner une url");
+            if(this.siteEdited.account === "0")
+                errors.push("Vous devez lier le site à un compte");
+            
+            if(errors.length > 0){
+                alert(errors.join("\n"));
+                return false;
+            }
+
+            return true;
         }
     }
 }

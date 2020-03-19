@@ -4,7 +4,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Edition d'un site</h5>
+                        <h5 class="modal-title"><template v-if="isEdited">Edition</template><template v-else>Ajout</template> d'un site</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -26,7 +26,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="siteNotificationGroup">Compte</label>
+                            <label for="siteNotificationGroup">Groupe de notification</label>
                             <select class="form-control" id="selectnotificationgroup" v-model="site.notificationgroup">
                                 <option value="0">-</option>
                                 <option v-for="(notificationgroup, idx) in notificationgroups" :key="idx" :value="notificationgroup._id">{{notificationgroup.name}}</option>
@@ -44,10 +44,14 @@
 <script>
 export default {
     name: 'EditSiteModal',
-    props: ['site', 'accounts', 'notificationgroups'],
+    props: ['site', 'accounts', 'notificationgroups', 'isEdited'],
     methods : {
         saveEdit : function(){
-            this.$emit('saveEdit');
+            if(this.isEdited)
+                this.$emit('saveEdit');
+            else {
+                this.$emit('saveAdd');
+            }
         }
     }
 }
