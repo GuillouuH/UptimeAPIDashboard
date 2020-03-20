@@ -4,7 +4,51 @@
         <div class="container-fluid m-2">
             <AdminBreadcrumb :data="breadcrumb"></AdminBreadcrumb>
             <div class="card border-primary p-4">
-                Adinistration des notifications
+                <div class="accordion" id="accordionExample">
+                    <div class="card" v-for="(group, index) in notificationgroups" :key="index">
+                        <div class="card-header notification-header" :id="'heading' + index">
+                            <h2 class="mb-0">
+                                <button class="btn btn-block text-left btn-link" type="button" data-toggle="collapse"  :data-target="'#collapse' + index" aria-expanded="true"  :aria-controls="'collapse' + index">
+                                    {{group.name}}
+                                    <!--<span class="fas fa-xs fa-chevron-down float-right down" aria-hidden="true"></span>
+                                    <span class="fas fa-xs fa-chevron-up float-right up" aria-hidden="true"></span>-->
+                                </button>
+                            </h2>
+                        </div>
+                        <div :id="'collapse' + index" class="collapse" :aria-labelledby="'heading' + index" data-parent="#accordionExample">
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <th scope="col">Type</th>
+                                        <th scope="col">Destinataire</th>
+                                        <th scope="col" class="text-right">Actions</th>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(cible, index) in group.cibles" :key="index">
+                                            <td>{{cible.type}}</td>
+                                            <td>{{cible.cible}}</td>
+                                            <td class="text-right">
+                                                <div class="btn-group float-right" role="group">
+                                                    <button type="button" class="btn btn-secondary d-inline"><span class="fas fa-pencil-alt" aria-hidden="true"></span></button>
+                                                    <button type="button" class="btn btn-danger" ><span class="fas fa-trash-alt" aria-hidden="true"></span></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="12">
+                                                <div class="d-flex justify-content-center">
+                                                    <button type="button" class="btn btn-success btn-lg" ><span class="fas fa-plus" aria-hidden="true"></span></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -45,4 +89,18 @@ export default {
     .admin-button {
         height:200px;
     }
+    .notification-header {
+        background-color: rgba(0,0,0,.03) !important;
+    }
+    .notification-header .fas {
+        color: #007bff
+    }
+    table.table thead, table.table tfoot  {
+        background : #ffffff !important;
+        color : #212529 !important;
+    }
+    table.table tr td {
+        text-align: left;
+    }
+
 </style>
