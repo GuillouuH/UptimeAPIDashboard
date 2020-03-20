@@ -1,6 +1,6 @@
 <template>
     <div id="adminsite">
-        <Toast ref="toastComponent"></Toast>
+        <Toast ref="toastComponent" :message="message"></Toast>
         <EditSiteModal :site="siteEdited" :accounts="accounts" :notificationgroups="notificationgroups" :isEdited="isEdited" @saveEdit="saveEdit" @saveAdd="saveAdd"></EditSiteModal>
         <AdminHeader></AdminHeader>
         <div class="container-fluid m-2">
@@ -60,6 +60,7 @@ export default {
     },
     data(){
         return {
+            message: {test:"", type:""},
             breadcrumb : this.$route.meta.breadcrumb,
             accounts : null,
             notificationgroups: null,
@@ -125,16 +126,20 @@ export default {
                 then(response => {
                     if(response.data.success === false){
                         alert("Une erreur est survenue");
-                        $('.modal').modal('hide')
+                        $('.modal').modal('hide');
+                        this.message.text = "Une erreur est survenue";
+                        this.message.type = "error";
                     } else {
                         $('.modal').modal('hide');
                         let siteConcerned = this.sites.find(e => e._id === this.siteEdited.id)
                         siteConcerned.name = this.siteEdited.name;
                         siteConcerned.url = this.siteEdited.url;
                         siteConcerned.Account = this.siteEdited.account;
-                        siteConcerned.NotificationGroup = this.siteEdited.notificationgroup
-                        this.$refs.toastComponent.openToast();
+                        siteConcerned.NotificationGroup = this.siteEdited.notificationgroup;
+                        this.message.text = "Site modifié avec succés";
+                        this.message.type = "success";
                     }
+                    this.$refs.toastComponent.openToast();
                 });
             }
         },
@@ -144,14 +149,17 @@ export default {
                 axios.post(url, this.siteEdited, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
                 then(response => {
                     if(response.data.success === false){
-                        alert("Une erreur est survenue");
                         $('.modal').modal('hide');
+                        this.message.text = "Une erreur est survenue";
+                        this.message.type = "error";
                     } else {
                         $('.modal').modal('hide');
-                        this.$refs.toastComponent.openToast();
                         this.selectedAccount = this.siteEdited.account;
                         this.modifySelectedAccount();
+                        this.message.text = "Site ajouté avec succés";
+                        this.message.type = "success";
                     }
+                    this.$refs.toastComponent.openToast();
                 });
             }
         },
@@ -179,11 +187,15 @@ export default {
                 axios.delete(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
                 then(response => {
                     if(response.data.success){
-                        this.modifySelectedAccount()
+                        this.modifySelectedAccount();
+                        this.message.text = "Site supprimé avec succés";
+                        this.message.type = "success";
                     } else {
-                        alert("Une erreur s'est produite, veuillez rééssayer ultérieurement")
+                        this.message.text = "Une erreur est survenue";
+                        this.message.type = "error";
                     }
                 });
+                this.$refs.toastComponent.openToast();
             }
         }
     }
