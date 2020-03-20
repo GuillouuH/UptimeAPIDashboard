@@ -25,6 +25,8 @@ export class SiteController{
     public async editSite (req: Request, res: Response) {        
         try {
             let request:any = {name:req.body.name, url:req.body.url, Account:req.body.account, NotificationGroup: req.body.notificationgroup};
+            if(req.body.notificationgroup === "0")
+                request = {name:req.body.name, url:req.body.url, Account:req.body.account};
             await Site.findOneAndUpdate({_id:req.body.id}, request).exec();
             res.json({success:true, message : "Update"});
         } catch (err) {
@@ -35,7 +37,10 @@ export class SiteController{
     public async addSiteWithLog (req: Request, res: Response) {
         try {
             let account = await Account.findOne({_id:req.body.account});
-            let siteToAdd = {name : req.body.name, url : req.body.url, createDatetime : moment().format("X"), Account : account!._id, status:1}
+            let siteToAdd:any = {name : req.body.name, url : req.body.url, createDatetime : moment().format("X"), Account : account!._id, status:1, NotificationGroup: req.body.notificationgroup}
+            if(req.body.notificationgroup === "0")
+                siteToAdd = {name : req.body.name, url : req.body.url, createDatetime : moment().format("X"), Account : account!._id, status:1}
+
             let logtype = await LogType.findOne({logTypeId:98});
             let newSite = new Site(siteToAdd);
             newSite.save(async (err, site) => {
