@@ -34,7 +34,7 @@
                                 <td class="text-right">
                                     <div class="btn-group float-right" role="group">
                                         <button type="button" class="btn btn-secondary d-inline" @click="editSite" :data-id="site._id"><span class="fas fa-pencil-alt" aria-hidden="true"></span></button>
-                                        <button type="button" class="btn btn-danger"><span class="fas fa-trash-alt" aria-hidden="true"></span></button>
+                                        <button type="button" class="btn btn-danger" @click="deleteSite" :data-id="site._id"><span class="fas fa-trash-alt" aria-hidden="true"></span></button>
                                     </div>
                                 </td>
                             </tr>
@@ -145,11 +145,12 @@ export default {
                 then(response => {
                     if(response.data.success === false){
                         alert("Une erreur est survenue");
-                        $('.modal').modal('hide')
+                        $('.modal').modal('hide');
                     } else {
                         $('.modal').modal('hide');
-                        this.sites.push(response.data)
                         this.$refs.toastComponent.openToast();
+                        this.selectedAccount = this.siteEdited.account;
+                        this.modifySelectedAccount();
                     }
                 });
             }
@@ -170,6 +171,20 @@ export default {
             }
 
             return true;
+        },
+        deleteSite: function(e){
+            let siteId = e.currentTarget.getAttribute("data-id");
+            if(confirm('Vous êtes sur le point de supprimer ce site ainsi que toutes ses données. Voulez-vous continuer?')){
+                let url = process.env.urlAPI+'sites?id='+siteId;
+                axios.delete(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+                then(response => {
+                    if(response.data.success){
+                        this.modifySelectedAccount()
+                    } else {
+                        alert("Une erreur s'est produite, veuillez rééssayer ultérieurement")
+                    }
+                });
+            }
         }
     }
 }

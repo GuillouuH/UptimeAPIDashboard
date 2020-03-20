@@ -71,13 +71,15 @@ export class SiteController{
         }).populate('Account');
     }
 
-    public deleteSites(req: Request, res: Response) {
-        let DeleteSites = Site.deleteMany({}).exec();
-        let DeleteAllLogs = Log.deleteMany({}).exec();
-        Promise.all([DeleteSites, DeleteAllLogs]).then(function () {
-            let data = {'State':'success', 'Message':'All site deleted successfully'}
-            res.json(data)
-        });
+    public async deleteSite(req: Request, res: Response) {
+        try {
+            await Site.deleteOne({_id:req.query.id}).exec();
+            await Log.deleteMany({Site:req.query.id}).exec();
+            
+            res.json({success:true, message : "Remove"});
+        } catch (err) {
+            res.send({success:false,message: "Error" });
+        }
     }
 
     public async pauseMonitorSite(req: Request, res: Response) {

@@ -52,7 +52,7 @@ export class Routes {
         .get(AuthenticateUser, this.siteController.getSite)
         .put(AuthenticateUser, this.siteController.editSite)
         .post(AuthenticateUser, this.siteController.addSiteWithLog)
-        .delete(AuthenticateUser, this.siteController.deleteSites)
+        .delete(AuthenticateUser, this.siteController.deleteSite)
 
         app.route('/pauseSite')
         .post(AuthenticateUser, this.siteController.pauseMonitorSite)
