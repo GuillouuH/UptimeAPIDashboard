@@ -34,12 +34,20 @@
                                                 </div>
                                             </td>
                                         </tr>
+                                        
+                                        <tr class="addForm d-none">
+                                            <td>email</td>
+                                            <td><input type="text" class="form-control" placeholder="destinataire" v-model="newDest"></td>
+                                            <td class="text-right">
+                                            </td>
+                                        </tr>
                                     </tbody>
                                     <tfoot>
                                         <tr>
                                             <td colspan="12">
                                                 <div class="d-flex justify-content-center">
-                                                    <button type="button" class="btn btn-success btn-lg" ><span class="fas fa-plus" aria-hidden="true"></span></button>
+                                                    <button type="button" class="btn btn-success addDest btn-lg" @click="addDestinataire"><span class="fas fa-plus" aria-hidden="true"></span></button>
+                                                    <button type="button" class="btn btn-success btn-lg saveAdd d-none" @click="saveDestinataire">Enregistrer</button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -67,7 +75,8 @@ export default {
     data(){
         return {
             breadcrumb : this.$route.meta.breadcrumb,
-            notificationgroups: null
+            notificationgroups: null,
+            newDest : ""
         }
     },
     mounted(){
@@ -78,9 +87,19 @@ export default {
             let url = process.env.urlAPI+'notificationgroups';
             axios.get(url, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
             then(resp => {
-                console.log(resp.data)
                 this.notificationgroups = resp.data;
             });
+        },
+        addDestinataire: function(){
+            $(".addForm").removeClass('d-none')
+            $(".saveAdd").removeClass('d-none')
+            $(".addDest").addClass('d-none')
+        },
+        saveDestinataire: function(){
+            console.log(this.newDest)
+            $(".addForm").addClass('d-none')
+            $(".saveAdd").addClass('d-none')
+            $(".addDest").removeClass('d-none')
         }
     }
 }
