@@ -37,7 +37,7 @@
                                         
                                         <tr class="addForm d-none">
                                             <td>email</td>
-                                            <td><input type="text" class="form-control" placeholder="destinataire" v-model="newDest"></td>
+                                            <td><input type="email" class="form-control" placeholder="destinataire" v-model="newDest"></td>
                                             <td class="text-right">
                                             </td>
                                         </tr>
@@ -47,7 +47,7 @@
                                             <td colspan="12">
                                                 <div class="d-flex justify-content-center">
                                                     <button type="button" class="btn btn-success addDest btn-lg" @click="addDestinataire"><span class="fas fa-plus" aria-hidden="true"></span></button>
-                                                    <button type="button" class="btn btn-success btn-lg saveAdd d-none" @click="saveDestinataire">Enregistrer</button>
+                                                    <button type="button" class="btn btn-success btn-lg saveAdd d-none" @click="saveDestinataire" :data-group-id="group._id">Enregistrer</button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -95,11 +95,28 @@ export default {
             $(".saveAdd").removeClass('d-none')
             $(".addDest").addClass('d-none')
         },
-        saveDestinataire: function(){
-            console.log(this.newDest)
-            $(".addForm").addClass('d-none')
-            $(".saveAdd").addClass('d-none')
-            $(".addDest").removeClass('d-none')
+        saveDestinataire: function(e){
+            if(this.checkIfNewDestValid().length > 0)
+                alert(this.checkIfNewDestValid().join("\n"));
+            else {
+                let groupId = e.currentTarget.getAttribute("data-group-id");
+                let groupConcerned = this.notificationgroups.find(e => e._id === groupId)
+                groupConcerned.cibles.push({type: "email", cible:this.newDest})
+                $(".addForm").addClass('d-none')
+                $(".saveAdd").addClass('d-none')
+                $(".addDest").removeClass('d-none')
+            }
+        },
+        checkIfNewDestValid(){
+            let errors = []
+
+            if(this.newDest === "")
+                errors.push("L'adresse email ne peut pas être vide")
+            else if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/).test(this.newDest)){
+                errors.push("L'adresse email saisie n'est pas valide")
+            }
+
+            return errors
         }
     }
 }
