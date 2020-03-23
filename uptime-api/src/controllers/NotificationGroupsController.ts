@@ -18,6 +18,16 @@ export class NotificationGroupController{
         });
     }
 
+    public async editNotificationGroup(req: any, res: any){
+        try {
+            let request:any = {cibles:req.body.cibles};
+            await NotificationGroups.findOneAndUpdate({_id:req.body.group_id}, request).exec();
+            res.json({success:true, message : "Update"});
+        } catch(err){
+            res.send({success:false,message: "Error" });
+        }
+    }
+
     public async getSiteNotificationGroup(req: any, res: any){
         try {
             let siteMap = await Site.findById(req.query.id);

@@ -1,5 +1,6 @@
 <template>
     <div id="adminnotification">   
+        <Toast ref="toastComponent" :message="message"></Toast>
         <AdminHeader></AdminHeader>
         <div class="container-fluid m-2">
             <AdminBreadcrumb :data="breadcrumb"></AdminBreadcrumb>
@@ -64,16 +65,18 @@
 <script>
 import AdminHeader from '@/components/Admin/Header';
 import AdminBreadcrumb from '@/components/Admin/Breadcrumb';
+import Toast from '@/components/Admin/Toast';
 
 import axios from 'axios'
 
 export default {
     name: 'AdminNoitification',
     components: {
-        AdminHeader, AdminBreadcrumb
+        AdminHeader, AdminBreadcrumb, Toast
     },
     data(){
         return {
+            message: {test:"", type:""},
             breadcrumb : this.$route.meta.breadcrumb,
             notificationgroups: null,
             newDest : ""
@@ -100,11 +103,25 @@ export default {
                 alert(this.checkIfNewDestValid().join("\n"));
             else {
                 let groupId = e.currentTarget.getAttribute("data-group-id");
-                let groupConcerned = this.notificationgroups.find(e => e._id === groupId)
-                groupConcerned.cibles.push({type: "email", cible:this.newDest})
-                $(".addForm").addClass('d-none')
-                $(".saveAdd").addClass('d-none')
-                $(".addDest").removeClass('d-none')
+                let groupConcerned = this.notificationgroups.find(e => e._id === groupId);
+                groupConcerned.cibles.push({type: "email", cible:this.newDest});
+                let data = {group_id: groupId, cibles: groupConcerned.cibles};
+                let url = process.env.urlAPI+'notificationgroups';
+                axios.put(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+                then(response => {
+                    if(response.data.success === false){
+                        this.message.text = "Une erreur est survenue";
+                        this.message.type = "error";
+                    } else {
+                        this.message.text = "L'email a bien été ajouté au groupe de notification";
+                        this.message.type = "success";
+                        $(".addForm").addClass('d-none')
+                        $(".saveAdd").addClass('d-none')
+                        $(".addDest").removeClass('d-none')
+                    }
+                    this.$refs.toastComponent.openToast();
+                });
+
             }
         },
         checkIfNewDestValid(){
