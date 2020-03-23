@@ -31,7 +31,7 @@
                                             <td class="text-right">
                                                 <div class="btn-group float-right" role="group">
                                                     <button type="button" class="btn btn-secondary d-inline"><span class="fas fa-pencil-alt" aria-hidden="true"></span></button>
-                                                    <button type="button" class="btn btn-danger" ><span class="fas fa-trash-alt" aria-hidden="true"></span></button>
+                                                    <button type="button" class="btn btn-danger" @click="deleteDestinataire" :data-group-id="group._id" :data-index="index"><span class="fas fa-trash-alt" aria-hidden="true"></span></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -98,6 +98,28 @@ export default {
             $(".saveAdd").removeClass('d-none')
             $(".addDest").addClass('d-none')
         },
+        deleteDestinataire: function(e){
+            let groupId = e.currentTarget.getAttribute("data-group-id");
+            let index = e.currentTarget.getAttribute("data-index");
+            let groupConcerned = this.notificationgroups.find(e => e._id === groupId);
+            if(confirm("Vous êtes sur le point de supprimer un destinaire, voulez-vous continuer?")){
+                groupConcerned.cibles.splice(index, 1);
+                let data = {group_id: groupId, cibles: groupConcerned.cibles};
+                let url = process.env.urlAPI+'notificationgroups';
+                axios.put(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+                then(response => {
+                    if(response.data.success === false){
+                        this.message.text = "Une erreur est survenue";
+                        this.message.type = "error";
+                    } else {
+                        this.message.text = "L'email a bien été supprimé du groupe de notification";
+                        this.message.type = "success";
+                    }
+                    
+                    this.$refs.toastComponent.openToast();
+                });
+            }
+        },
         saveDestinataire: function(e){
             if(this.checkIfNewDestValid().length > 0)
                 alert(this.checkIfNewDestValid().join("\n"));
@@ -121,7 +143,6 @@ export default {
                     }
                     this.$refs.toastComponent.openToast();
                 });
-
             }
         },
         checkIfNewDestValid(){
@@ -134,7 +155,7 @@ export default {
             }
 
             return errors
-        }
+        }, 
     }
 }
 </script>
