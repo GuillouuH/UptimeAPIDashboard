@@ -86,7 +86,7 @@ export default {
     },
     data(){
         return {
-            message: {test:"", type:""},
+            message: {text:"", type:""},
             breadcrumb : this.$route.meta.breadcrumb,
             notificationgroups: null,
             newDest : "",

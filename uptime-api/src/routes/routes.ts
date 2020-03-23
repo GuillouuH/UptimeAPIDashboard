@@ -73,8 +73,10 @@ export class Routes {
         app.route('/saveLogType')
         .post(AuthenticateUser, this.logTypeController.addLogType);
 
-        app.route('/addUser')
-        .post(AuthenticateUser, this.userController.addUSer);
+        app.route('/users')
+        .get(AuthenticateUser, this.userController.getUsers)
+        .post(AuthenticateUser, this.userController.addUSer)
+        .delete(AuthenticateUser, this.userController.deleteUer);
 
         app.route('/favorites')
         .get(AuthenticateUser, this.favoriteController.listFavorite)

@@ -120,4 +120,13 @@ export class UserController{
             res.json(user);
         }).populate('Type');
     }
+
+    public async deleteUer (req: Request, res: Response) {           
+        try {
+            await User.deleteOne({_id:req.query.id}).exec();
+            res.json({success:true, message : "Remove"});
+        } catch(e){
+            res.send({success:false,message: "Error" });
+        }
+    }
 }
