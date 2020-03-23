@@ -27,11 +27,16 @@
                                     <tbody>
                                         <tr v-for="(cible, index) in group.cibles" :key="index">
                                             <td>{{cible.type}}</td>
-                                            <td>{{cible.cible}}</td>
+                                            <td class="cible">{{cible.cible}}</td>
+                                            <td class="cibleEdit d-none"><input type="email" class="form-control" placeholder="destinataire" v-model="editDest"></td>
                                             <td class="text-right">
-                                                <div class="btn-group float-right" role="group">
-                                                    <button type="button" class="btn btn-secondary d-inline"><span class="fas fa-pencil-alt" aria-hidden="true"></span></button>
+                                                <div class="destActions btn-group float-right" role="group">
+                                                    <button type="button" class="btn btn-secondary d-inline" @click="editDestinataire" :data-cible="cible.cible"><span class="fas fa-pencil-alt" aria-hidden="true"></span></button>
                                                     <button type="button" class="btn btn-danger" @click="deleteDestinataire" :data-group-id="group._id" :data-index="index"><span class="fas fa-trash-alt" aria-hidden="true"></span></button>
+                                                </div>
+                                                <div class="editDestActions btn-group float-right d-none" role="group">
+                                                    <button type="button" class="btn btn-success d-inline" @click="saveEditDestinataire" :data-group-id="group._id" :data-index="index"><span class="fas fa-check" aria-hidden="true"></span></button>
+                                                    <button type="button" class="btn btn-danger" @click="cancelEdit"><span class="fas fa-times" aria-hidden="true"></span></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -79,7 +84,8 @@ export default {
             message: {test:"", type:""},
             breadcrumb : this.$route.meta.breadcrumb,
             notificationgroups: null,
-            newDest : ""
+            newDest : "",
+            editDest : ""
         }
     },
     mounted(){
@@ -124,9 +130,50 @@ export default {
                 alert("Le groupe doit contenir au moins un destinataire.")
             }
         },
+        editDestinataire: function(e){
+            let cible = e.currentTarget.getAttribute("data-cible");
+            $(e.currentTarget.closest("td")).find(".destActions").addClass("d-none")
+            $(e.currentTarget.closest("td")).find(".editDestActions").removeClass("d-none")
+            $(e.currentTarget.closest("tr")).find(".cible").addClass("d-none")
+            $(e.currentTarget.closest("tr")).find(".cibleEdit").removeClass("d-none")
+            this.editDest = cible
+
+        },
+        saveEditDestinataire: function(e){
+            if(this.checkIfDestValid(this.editDest).length > 0)
+                alert(this.checkIfDestValid(this.editDest).join("\n"));
+            else {
+                let groupId = e.currentTarget.getAttribute("data-group-id");
+                let index = e.currentTarget.getAttribute("data-index");
+                let groupConcerned = this.notificationgroups.find(e => e._id === groupId);
+                groupConcerned.cibles[index].cible = this.editDest;
+                let data = {group_id: groupId, cibles: groupConcerned.cibles};
+                let url = process.env.urlAPI+'notificationgroups';
+                axios.put(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+                then(response => {
+                    if(response.data.success === false){
+                        this.message.text = "Une erreur est survenue";
+                        this.message.type = "error";
+                    } else {
+                        this.message.text = "L'email a été modifié avec succés";
+                        this.message.type = "success";
+                    }
+                    this.$refs.toastComponent.openToast();
+                });
+            }
+            this.cancelEdit(e)
+
+        },
+        cancelEdit: function(e){
+            $(e.currentTarget.closest("td")).find(".destActions").removeClass("d-none")
+            $(e.currentTarget.closest("td")).find(".editDestActions").addClass("d-none")
+            $(e.currentTarget.closest("tr")).find(".cible").removeClass("d-none")
+            $(e.currentTarget.closest("tr")).find(".cibleEdit").addClass("d-none")
+            this.editDest = ""
+        },
         saveDestinataire: function(e){
-            if(this.checkIfNewDestValid().length > 0)
-                alert(this.checkIfNewDestValid().join("\n"));
+            if(this.checkIfDestValid(this.newDest).length > 0)
+                alert(this.checkIfDestValid(this.newDest).join("\n"));
             else {
                 let groupId = e.currentTarget.getAttribute("data-group-id");
                 let groupConcerned = this.notificationgroups.find(e => e._id === groupId);
@@ -149,12 +196,12 @@ export default {
                 });
             }
         },
-        checkIfNewDestValid(){
+        checkIfDestValid(dest){
             let errors = []
 
-            if(this.newDest === "")
+            if(dest === "")
                 errors.push("L'adresse email ne peut pas être vide")
-            else if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/).test(this.newDest)){
+            else if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/).test(dest)){
                 errors.push("L'adresse email saisie n'est pas valide")
             }
 
