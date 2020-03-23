@@ -14,7 +14,7 @@
                 </div>
                 <div class="form-group">
                     <label for="userPassword">Mon nouveau mot de passe</label>
-                    <input type="text" class="form-control" id="userPassword" placeholder="Entrer un email" v-model="newPassword">
+                    <input type="password" class="form-control" id="userPassword" placeholder="Entrer un email" v-model="newPassword">
                 </div>
                  <div class="d-flex justify-content-center">
                     <button type="button" class="btn btn-success addDest btn-lg" @click="saveUser">Enregistrer</button>
