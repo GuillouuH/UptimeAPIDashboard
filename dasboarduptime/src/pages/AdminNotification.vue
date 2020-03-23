@@ -99,10 +99,10 @@ export default {
                 this.notificationgroups = resp.data;
             });
         },
-        addDestinataire: function(){
-            $(".addForm").removeClass('d-none')
-            $(".saveAdd").removeClass('d-none')
-            $(".addDest").addClass('d-none')
+        addDestinataire: function(e){
+            $(e.currentTarget.closest("table")).find(".addForm").removeClass('d-none')
+            $(e.currentTarget.closest("table")).find(".saveAdd").removeClass('d-none')
+            $(e.currentTarget.closest("table")).find(".addDest").addClass('d-none')
         },
         deleteDestinataire: function(e){
             let groupId = e.currentTarget.getAttribute("data-group-id");
@@ -188,9 +188,9 @@ export default {
                     } else {
                         this.message.text = "L'email a bien été ajouté au groupe de notification";
                         this.message.type = "success";
-                        $(".addForm").addClass('d-none')
-                        $(".saveAdd").addClass('d-none')
-                        $(".addDest").removeClass('d-none')
+                        $(e.currentTarget.closest("table")).find(".addForm").addClass('d-none')
+                        $(e.currentTarget.closest("table")).find(".saveAdd").addClass('d-none')
+                        $(e.currentTarget.closest("table")).find(".addDest").removeClass('d-none')
                     }
                     this.$refs.toastComponent.openToast();
                 });
