@@ -1,6 +1,7 @@
 <template>
     <div id="adminnotification">   
         <Toast ref="toastComponent" :message="message"></Toast>
+        <AddGroupModal :newGroup="newGroup" @saveAddGroup="saveAddGroup"></AddGroupModal>
         <AdminHeader></AdminHeader>
         <div class="container-fluid m-2">
             <AdminBreadcrumb :data="breadcrumb"></AdminBreadcrumb>
@@ -63,6 +64,9 @@
                         </div>
                     </div>
                 </div>
+                <div class="d-flex justify-content-center mt-2">
+                    <button type="button" class="btn btn-success addDest btn-lg" @click="addGroupNotification">Ajouter</button>
+                </div>
             </div>
         </div>
     </div>
@@ -71,13 +75,14 @@
 import AdminHeader from '@/components/Admin/Header';
 import AdminBreadcrumb from '@/components/Admin/Breadcrumb';
 import Toast from '@/components/Admin/Toast';
+import AddGroupModal from '@/components/Admin/AddGroupModal';
 
 import axios from 'axios'
 
 export default {
     name: 'AdminNoitification',
     components: {
-        AdminHeader, AdminBreadcrumb, Toast
+        AdminHeader, AdminBreadcrumb, Toast, AddGroupModal
     },
     data(){
         return {
@@ -85,7 +90,8 @@ export default {
             breadcrumb : this.$route.meta.breadcrumb,
             notificationgroups: null,
             newDest : "",
-            editDest : ""
+            editDest : "",
+            newGroup : {name: "", cibles:[]}
         }
     },
     mounted(){
@@ -207,6 +213,30 @@ export default {
 
             return errors
         }, 
+        addGroupNotification(){
+            $('.modal').modal('show');
+        },
+        saveAddGroup(){
+            if(this.newGroup.name === ""){
+                this.message.text = "Le nom du groupe ne peut pas être vide";
+                this.message.type = "danger";
+            } else {
+                let url = process.env.urlAPI+'notificationgroups';
+                axios.post(url, this.newGroup, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+                then(response => {
+                    if(response.data.success === false){
+                        this.message.text = "Une erreur est survenue";
+                        this.message.type = "error";
+                    } else {
+                        this.message.text = "Le groupe a été ajouté";
+                        this.message.type = "success";
+                        this.getNotificationGroups()
+                    }
+                    $('.modal').modal('hide');
+                });
+            }
+            this.$refs.toastComponent.openToast();
+        }
     }
 }
 </script>

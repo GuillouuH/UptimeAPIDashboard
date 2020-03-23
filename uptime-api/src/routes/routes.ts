@@ -83,6 +83,7 @@ export class Routes {
         
         app.route('/notificationgroups')
         .get(AuthenticateUser, this.notificationGroupController.getNotificationGroup)
+        .post(AuthenticateUser, this.notificationGroupController.addNotificationGroup)
         .put(AuthenticateUser, this.notificationGroupController.editNotificationGroup)
 
         app.route('/notificationgroupssite')

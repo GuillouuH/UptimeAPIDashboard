@@ -18,6 +18,20 @@ export class NotificationGroupController{
         });
     }
 
+    public addNotificationGroup (req: Request, res: Response) {           
+        try {
+            let newGroupe = new NotificationGroups(req.body);
+            newGroupe.save((err, group) => {
+                if(err){
+                    res.send(err);
+                }    
+                res.json({success:true, message : "Added"});
+            });
+        } catch(err){
+            res.send({success:false,message: "Error" });
+        }
+    }
+
     public async editNotificationGroup(req: any, res: any){
         try {
             let request:any = {cibles:req.body.cibles};
