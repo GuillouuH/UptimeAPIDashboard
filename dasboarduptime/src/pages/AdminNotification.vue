@@ -102,22 +102,26 @@ export default {
             let groupId = e.currentTarget.getAttribute("data-group-id");
             let index = e.currentTarget.getAttribute("data-index");
             let groupConcerned = this.notificationgroups.find(e => e._id === groupId);
-            if(confirm("Vous êtes sur le point de supprimer un destinaire, voulez-vous continuer?")){
-                groupConcerned.cibles.splice(index, 1);
-                let data = {group_id: groupId, cibles: groupConcerned.cibles};
-                let url = process.env.urlAPI+'notificationgroups';
-                axios.put(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
-                then(response => {
-                    if(response.data.success === false){
-                        this.message.text = "Une erreur est survenue";
-                        this.message.type = "error";
-                    } else {
-                        this.message.text = "L'email a bien été supprimé du groupe de notification";
-                        this.message.type = "success";
-                    }
-                    
-                    this.$refs.toastComponent.openToast();
-                });
+            if(groupConcerned.cibles.length > 1){
+                if(confirm("Vous êtes sur le point de supprimer un destinaire, voulez-vous continuer?")){
+                    groupConcerned.cibles.splice(index, 1);
+                    let data = {group_id: groupId, cibles: groupConcerned.cibles};
+                    let url = process.env.urlAPI+'notificationgroups';
+                    axios.put(url, data, {headers: { "user_token": localStorage.getItem('jwt-connexion')}}).
+                    then(response => {
+                        if(response.data.success === false){
+                            this.message.text = "Une erreur est survenue";
+                            this.message.type = "error";
+                        } else {
+                            this.message.text = "L'email a bien été supprimé du groupe de notification";
+                            this.message.type = "success";
+                        }
+
+                        this.$refs.toastComponent.openToast();
+                    });
+                }
+            } else {
+                alert("Le groupe doit contenir au moins un destinataire.")
             }
         },
         saveDestinataire: function(e){
