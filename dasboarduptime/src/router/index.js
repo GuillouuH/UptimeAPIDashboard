@@ -9,7 +9,7 @@ import AdminSite from '@/pages/AdminSite.vue'
 import AdminAccount from '@/pages/AdminAccount.vue'
 import AdminNotification from '@/pages/AdminNotification.vue'
 import AdminUser from '@/pages/AdminUser.vue'
-
+import AdminMyAccount from '@/pages/AdminMyAccount.vue'
 import axios from 'axios'
 import  * as jwt from 'jsonwebtoken';
 
@@ -116,11 +116,16 @@ const router =  new Router({
             }
         },
         {
+            path: '/admin/myaccount',
+            name: 'MyAccount',
+            component: AdminMyAccount,
+            meta: { 
+                requiresAuth: true
+            }
+        },
+        {
             path: '/login',
             name: 'Login',
-            params: {
-                theme: 'dark'
-            },
             component: Login,
             meta: { 
                 requiresAuth: false

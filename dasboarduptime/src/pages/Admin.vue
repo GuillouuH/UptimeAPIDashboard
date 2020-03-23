@@ -4,7 +4,7 @@
         <div class="container-fluid">
             <div class="card border-primary p-4">
                 <div class="row">
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
                         <div class="card text-white bg-primary p-2 mb-2">
                             <router-link to="/admin/sites" class="card-block text-light text-center stretched-link text-decoration-none">
                                 <div class="card-body">
@@ -14,7 +14,7 @@
                             </router-link>
                         </div>
                     </div>
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
                         <div class="card text-white bg-secondary p-2 mb-2">
                             <router-link to="/admin/notifications" class="card-block text-light text-center stretched-link text-decoration-none">
                                 <div class="card-body">
@@ -24,7 +24,7 @@
                             </router-link >
                         </div>
                     </div>
-                    <div class="col-sm-3">
+                    <!--<div class="col-sm-3">
                         <div class="card text-white bg-success p-2 mb-2">
                             <router-link to="/admin/accounts" class="card-block text-light text-center stretched-link text-decoration-none">
                                 <div class="card-body">
@@ -33,8 +33,8 @@
                                 </div>
                             </router-link >
                         </div>
-                    </div>
-                    <div class="col-sm-3">
+                    </div>-->
+                    <div class="col-sm-4">
                         <div class="card text-white bg-info p-2 mb-2">
                             <router-link to="/admin/users" class="card-block text-light text-center stretched-link text-decoration-none">
                                 <div class="card-body">

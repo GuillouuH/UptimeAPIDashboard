@@ -15,7 +15,9 @@
                         <li class="p-3">
                                 <form class="form" role="form">
                                     <div class="form-group">
-                                        <button  class="btn btn-outline-primary btn-block" type="" >Modifier</button>
+                                        <router-link to="/admin/myaccount" class="btn btn-outline-primary btn-block">
+                                            Modifier
+                                        </router-link >
                                     </div>
                                     <div class="form-group">
                                         <button  class="btn btn-danger btn-block" type="" @click.prevent="logout">Déconnexion</button>

@@ -58,6 +58,44 @@ export class UserController{
         }
     }
 
+    public async editUser(req: Request, res: Response){
+        let email = req.body.email;
+        let username = req.body.username;
+        let password = req.body.newPassword;
+        let salt = await bcrypt.genSalt(10);
+        try {
+            let newUser : any = {username: username, email:email}
+            
+            if(password !== '' ){
+                newUser.password = await bcrypt.hash(password, salt);
+            }
+
+            let userModify : any = await User.findOneAndUpdate({_id:req.body.id}, newUser).exec();
+            const payload = {userModify: {
+                    id: userModify._id,
+                    mail: email,
+                    username:username
+                }
+            };
+            jwt.sign(
+                payload,
+                JWT_SECRET_KEY!, {
+                    expiresIn: 86400
+                },
+                (err, token) => {
+                    if (err) throw err;
+                    res.status(200).json({
+                        success:true,
+                        token
+                    });
+                }
+            );
+        } catch (err) {
+            console.log(err)
+            res.status(500).send("Error");
+        }
+    }
+
     public async userLogin (req: Request, res: Response) {          
         const { email, password } = req.body;
         try {

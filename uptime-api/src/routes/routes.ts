@@ -76,7 +76,8 @@ export class Routes {
         app.route('/users')
         .get(AuthenticateUser, this.userController.getUsers)
         .post(AuthenticateUser, this.userController.addUSer)
-        .delete(AuthenticateUser, this.userController.deleteUer);
+        .delete(AuthenticateUser, this.userController.deleteUer)
+        .put(AuthenticateUser, this.userController.editUser);
 
         app.route('/favorites')
         .get(AuthenticateUser, this.favoriteController.listFavorite)
