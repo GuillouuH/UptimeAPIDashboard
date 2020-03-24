@@ -4,6 +4,10 @@
             <router-link to="/admin/" class="navbar-brand">
                 Administration
             </router-link >
+            &nbsp;
+            <button class="btn btn-outline-primary my-2 my-sm-0" type="button" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <router-link :to="{name:'Result'}" id="dashboard-link" tag="a">Dashboard</router-link>
+            </button>
             <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>

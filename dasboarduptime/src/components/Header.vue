@@ -55,7 +55,11 @@
                                     year: date,
                                 }
                             }" id="dashboard-link" tag="a">Dashboard</router-link>
+                        </button>&nbsp;
+                        <button class="btn btn-outline-primary my-2 my-sm-0" type="button" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                            <router-link :to="{name:'Admin'}" id="dashboard-link" tag="a">Admin</router-link>
                         </button>
+
                     </ul>
                     <button v-if="options.hasCount == true" type="button" class="btn btn-outline-primary my-2 my-sm-0 mr-2">
                         {{nbElement}}
