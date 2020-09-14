@@ -320,7 +320,7 @@ export class LogController{
                             sort:{datetime:-1}
                         }
                     ).lean().exec();
-                    if(LastLogRequest !== undefined && LastLogRequest.takeIntoAccount == true){ //Si je trouve bien un down et qu'il faut le prendre en compte alors je l'ajoute au début de mes logs de ma période en cours en modifiant le datetime
+                    if(LastLogRequest !== undefined && LastLogRequest !== null  && LastLogRequest.takeIntoAccount !== undefined && LastLogRequest.takeIntoAccount == true){ //Si je trouve bien un down et qu'il faut le prendre en compte alors je l'ajoute au début de mes logs de ma période en cours en modifiant le datetime
                         logsSite.unshift({
                             "_id":LastLogRequest._id,
                             "site":LastLogRequest.Site,
@@ -363,7 +363,7 @@ export class LogController{
                     }
                 });
 
-                
+
                 if(parseInt(end) < site.createDatetime) {
                     durationLog = null
                 }
