@@ -155,6 +155,7 @@ export class LogController{
                                 rangesArray[j][0] = sites[i].createDatetime;
                             }
                             let rangeDuration = this.getDuration(parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), custom_days_range, custom_interval)
+                            console.log(parseInt(rangesArray[j][0])+"-"+parseInt(rangesArray[j][1]));
                             all_promise.push(this.getLogInIntervalle(sites[i]._id, parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), logTypesDown, allLogType, downPauseType, rangeDuration));
                         }
                         allLogSite_promises.push(this.getAllLogSites(all_promise, custom_days_range, custom_interval, sites[i]));
@@ -162,6 +163,8 @@ export class LogController{
                 }
                 await Promise.all(allLogSite_promises).then((promise_result:any) => {
                     promise_result.forEach((element : any) => {
+                        console.log("promise_result element");
+                      //  console.log(element);
                         let site = element.site
                         let allLogs = element.allLogsSite
                         let uptime = element.uptimeSite
@@ -297,86 +300,89 @@ export class LogController{
         try {
             let uptime : any = [];
             let allLogs : any = [];
-            await Promise.all(all_promise.map(async results => {
-                let result = await results
-                let logsSite = result.logs
-                let rangeDuration = result.rangeDuration
-                let start = result.start
-                let end = result.end
-                let durationLog : any = 0;
-                logsSite.sort((a : any, b : any) => a.datetime - b.datetime);
-                if(logsSite.length > 0 && logsSite[0].type === 2){ //Si j'ai des logs et que le premier est de type UP alors il faudrait essayer de trouver le DOWN précédent
-                    let LogTypesDown = await LogType.find({
-                        logTypeId: { $eq: 1}
-                    }, '_id logTypeId').lean().exec();
-                    let LastLogRequest = await Log.findOne(
-                        {
-                            Site : { $eq: site},
-                            datetime:{$lt:logsSite[0].datetime},
-                            Type: LogTypesDown
-                        },
-                        {},
-                        {
-                            sort:{datetime:-1}
-                        }
-                    ).lean().exec();
-                    if(LastLogRequest !== undefined && LastLogRequest !== null  && LastLogRequest.takeIntoAccount !== undefined && LastLogRequest.takeIntoAccount == true){ //Si je trouve bien un down et qu'il faut le prendre en compte alors je l'ajoute au début de mes logs de ma période en cours en modifiant le datetime
-                        logsSite.unshift({
-                            "_id":LastLogRequest._id,
-                            "site":LastLogRequest.Site,
-                            "datetime":start,
-                            "duration":LastLogRequest.duration,
-                            "reason":{"code":LastLogRequest.code,"detail":LastLogRequest.detail},
-                            "type":1, //C'est forcément un down car c'était filtré dans la query en BDD
-                            "comment":LastLogRequest.comment,
-                            "takeIntoAccount":LastLogRequest.takeIntoAccount
-                        });
-                    }
-                }
-                logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, site._id)
-                logsSite.forEach((el : any, idx : any, array : any) => {
-                    if(el === logsSite[logsSite.length-1]){ //Si c'est le dernier log de la liste alors la durée correspond à maintenant moins le début du log
-                        el.duration = parseInt(moment().format("X")) - el.datetime
-                    } else { //Sinon la durée correspond au début du prochain log moins le début de ce log
-                        el.duration = logsSite[idx + 1].datetime - el.datetime
-                    }
-                    //Type 2 = Log UP
-                    //Type 1 = Log DOWN
-                    if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(end) && el.type === 1){ //Si le log est de type DOWN, et que ça commence avant le début de la période et se termine apres alors on ignore. Pourquoi ???
-                        durationLog = null
-                    } else {
-                        // Si le dernier log est un log de pause
-                        if(el.datetime <= parseInt(start) && el.datetime + el.duration >= parseInt(start) && (el.type === 99) && el == logsSite[logsSite.length-1]){
-                            durationLog = null;
-                        } else if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(start) && el.type === 1){
-                            let duration = el.datetime + el.duration - parseInt(result.start);
-                            durationLog = durationLog + duration
-                        }else if(el.datetime >= parseInt(start) && el.datetime <= parseInt(end) && el.type === 1){
-                            if(el.takeIntoAccount){
-                                let duration = el.duration
-                                if(el.datetime + el.duration > parseInt(end))
-                                    duration = parseInt(end) - el.datetime
-                                durationLog = durationLog + duration
+            console.log(all_promise);
+            await Promise.all(all_promise).then(results => {
+                uptime = {} //Creation d'un object ce qui permet de consever l'odre (avec les promises il est possible que l'odre bouge et change le % d'un mois sur l'autre dans le tableau
+                return Promise.all(results.map(async (result, resultIndex) => {
+                    let logsSite = result.logs
+                    let rangeDuration = result.rangeDuration
+                    let start = result.start
+                    let end = result.end
+                    let durationLog: any = 0;
+                    logsSite.sort((a: any, b: any) => a.datetime - b.datetime);
+                    if (logsSite.length > 0 && logsSite[0].type === 2) { //Si j'ai des logs et que le premier est de type UP alors il faudrait essayer de trouver le DOWN précédent
+                        let LogTypesDown = await LogType.find({
+                            logTypeId: {$eq: 1}
+                        }, '_id logTypeId').lean().exec();
+                        let LastLogRequest = await Log.findOne(
+                            {
+                                Site: {$eq: site},
+                                datetime: {$lt: logsSite[0].datetime},
+                                Type: LogTypesDown
+                            },
+                            {},
+                            {
+                                sort: {datetime: -1}
                             }
-                            allLogs.push(el)
+                        ).lean().exec();
+                        if (LastLogRequest !== undefined && LastLogRequest !== null && LastLogRequest.takeIntoAccount !== undefined && LastLogRequest.takeIntoAccount == true) { //Si je trouve bien un down et qu'il faut le prendre en compte alors je l'ajoute au début de mes logs de ma période en cours en modifiant le datetime
+                            logsSite.unshift({
+                                "_id": LastLogRequest._id,
+                                "site": LastLogRequest.Site,
+                                "datetime": start,
+                                "duration": LastLogRequest.duration,
+                                "reason": {"code": LastLogRequest.code, "detail": LastLogRequest.detail},
+                                "type": 1, //C'est forcément un down car c'était filtré dans la query en BDD
+                                "comment": LastLogRequest.comment,
+                                "takeIntoAccount": LastLogRequest.takeIntoAccount
+                            });
                         }
                     }
-                });
-
-
-                if(parseInt(end) < site.createDatetime) {
-                    durationLog = null
-                }
-                if(durationLog == null){
-                    uptime.push("0.000")
-                } else if( durationLog === 0) {
-                    uptime.push("100.000")
-                }else {
-                    let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
-                    uptime.push(tmpUptime.toFixed(3))
-                }
-            }))
-            return {allLogsSite : allLogs, uptimeSite: uptime, site : site}
+console.log(parseInt(moment().format("X")));
+                    logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, site._id)
+                    logsSite.forEach((el: any, idx: any, array: any) => {
+                        if (el === logsSite[logsSite.length - 1]) { //Si c'est le dernier log de la liste alors la durée correspond à maintenant moins le début du log
+                            el.duration = parseInt(moment().format("X")) - el.datetime
+                        } else { //Sinon la durée correspond au début du prochain log moins le début de ce log
+                            el.duration = logsSite[idx + 1].datetime - el.datetime
+                        }
+                        //Type 2 = Log UP
+                        //Type 1 = Log DOWN
+                        if (el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(end) && el.type === 1) { //Si le log est de type DOWN, et que ça commence avant le début de la période et se termine apres alors on ignore. Pourquoi ???
+                            durationLog = null
+                        } else {
+                            // Si le dernier log est un log de pause
+                            if (el.datetime <= parseInt(start) && el.datetime + el.duration >= parseInt(start) && (el.type === 99) && el == logsSite[logsSite.length - 1]) {
+                                durationLog = null;
+                            } else if (el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(start) && el.type === 1) {
+                                let duration = el.datetime + el.duration - parseInt(result.start);
+                                durationLog = durationLog + duration
+                            } else if (el.datetime >= parseInt(start) && el.datetime <= parseInt(end) && el.type === 1) {
+                                if (el.takeIntoAccount) {
+                                    let duration = el.duration
+                                    if (el.datetime + el.duration > parseInt(end))
+                                        duration = parseInt(end) - el.datetime
+                                    durationLog = durationLog + duration
+                                }
+                                allLogs.push(el)
+                            }
+                        }
+                    });
+                    console.log(allLogs);
+                    if (parseInt(end) < site.createDatetime) {
+                        durationLog = null
+                    }
+                    if (durationLog == null) {
+                        uptime[resultIndex] = "0.000";
+                    } else if (durationLog === 0) {
+                        uptime[resultIndex] = "100.000";
+                    } else {
+                        let tmpUptime = ((rangeDuration - durationLog) / rangeDuration) * 100
+                        uptime[resultIndex] = tmpUptime.toFixed(3);
+                    }
+                }))
+            })
+            return {allLogsSite: allLogs, uptimeSite: Object.values(uptime), site: site}
 
         } catch(err){
             console.log(err)
