@@ -155,7 +155,6 @@ export class LogController{
                                 rangesArray[j][0] = sites[i].createDatetime;
                             }
                             let rangeDuration = this.getDuration(parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), custom_days_range, custom_interval)
-                            console.log(parseInt(rangesArray[j][0])+"-"+parseInt(rangesArray[j][1]));
                             all_promise.push(this.getLogInIntervalle(sites[i]._id, parseInt(rangesArray[j][0]), parseInt(rangesArray[j][1]), logTypesDown, allLogType, downPauseType, rangeDuration));
                         }
                         allLogSite_promises.push(this.getAllLogSites(all_promise, custom_days_range, custom_interval, sites[i]));
@@ -163,8 +162,6 @@ export class LogController{
                 }
                 await Promise.all(allLogSite_promises).then((promise_result:any) => {
                     promise_result.forEach((element : any) => {
-                        console.log("promise_result element");
-                      //  console.log(element);
                         let site = element.site
                         let allLogs = element.allLogsSite
                         let uptime = element.uptimeSite
@@ -300,7 +297,6 @@ export class LogController{
         try {
             let uptime : any = [];
             let allLogs : any = [];
-            console.log(all_promise);
             await Promise.all(all_promise).then(results => {
                 uptime = {} //Creation d'un object ce qui permet de consever l'odre (avec les promises il est possible que l'odre bouge et change le % d'un mois sur l'autre dans le tableau
                 return Promise.all(results.map(async (result, resultIndex) => {
@@ -338,11 +334,13 @@ export class LogController{
                             });
                         }
                     }
-console.log(parseInt(moment().format("X")));
                     logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, site._id)
                     logsSite.forEach((el: any, idx: any, array: any) => {
                         if (el === logsSite[logsSite.length - 1]) { //Si c'est le dernier log de la liste alors la durée correspond à maintenant moins le début du log
-                            el.duration = parseInt(moment().format("X")) - el.datetime
+                            let fakeUpDatetime = parseInt(moment().format("X"));
+                            if(fakeUpDatetime>end) //Si la date du jour est dépasse a la fin alors on utilise la date de fin
+                                fakeUpDatetime = parseInt(end)
+                            el.duration = end - el.datetime
                         } else { //Sinon la durée correspond au début du prochain log moins le début de ce log
                             el.duration = logsSite[idx + 1].datetime - el.datetime
                         }
@@ -368,7 +366,6 @@ console.log(parseInt(moment().format("X")));
                             }
                         }
                     });
-                    console.log(allLogs);
                     if (parseInt(end) < site.createDatetime) {
                         durationLog = null
                     }
