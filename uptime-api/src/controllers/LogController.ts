@@ -26,10 +26,10 @@ export class LogController{
 
     public async takeIntoAccountLog(req: Request, res: Response){
         let array_logs = req.body.data;
-        
+
         let all_promise : any = []
         array_logs.forEach(async (e : any) => {
-            all_promise.push(Log.findOneAndUpdate({_id : e.id}, { comment: e.comment, takeIntoAccount: e.takeIntoAccount }).exec())            
+            all_promise.push(Log.findOneAndUpdate({_id : e.id}, { comment: e.comment, takeIntoAccount: e.takeIntoAccount }).exec())
         });
 
         try {
@@ -87,11 +87,11 @@ export class LogController{
                 else
                     duplicateLogs.push(logArray[key]);
             });
-            
+
             duplicateLogs.forEach(element => {
                 element = element.sort((a:any,b:any) => (a.duration > b.duration) ? 1 : (b.duration  > a.duration) ? -1 : 0);
             })
-            
+
             duplicateLogs.forEach(element => {
                 for(let i = 0; i < element.length; i++){
                     if(i === 0){
@@ -111,8 +111,8 @@ export class LogController{
     public getLogsBySites = async (req: Request, res: Response) => {
         const { site, ranges, custom_days_range = Array(), custom_interval = Array(), account=0} = req.body;
         let allRanges = ranges.split("-")
-        let rangesArray = allRanges.map(function(e:any) { 
-            e = e.split('_'); 
+        let rangesArray = allRanges.map(function(e:any) {
+            e = e.split('_');
             return e;
         });
         let requestSite = {}
@@ -120,13 +120,13 @@ export class LogController{
         if(Array.isArray(site)){
             requestSite = {_id : { $in: site}}
         }
-        
+
         let TypeAccount = AccountType.find({}).lean().exec();
         let Sites =  Site.find(requestSite).populate('Account').lean().exec();
         let LogTypesDown = LogType.find({}, '_id logTypeId').exec();
 
-        let allSites = Array();        
-        
+        let allSites = Array();
+
         try {
             await Promise.all([Sites, TypeAccount, LogTypesDown]).then(async ([sites, typeaccount, logtypesdown])=>{
                 let logTypesDown = Array();
@@ -144,7 +144,7 @@ export class LogController{
                 })
                 if(account != 0)
                     sites = sites.filter((e : any) => e.Account.Type == account)
-                
+
                 let allLogSite_promises : any = []
 
                 for(var i = 0; i < sites.length; i++){
@@ -227,9 +227,9 @@ export class LogController{
     public async getLogInIntervalle(Site:string, start:number, end:number, logTypeDown:Array<any>, allLogType:Array<any>, downPauseType:Array<any>, rangeDuration:any){
         let LogsRequest = Log.find(
             {
-                Site : { $eq: Site}, 
+                Site : { $eq: Site},
                 datetime:{$lte:end, $gte:start}
-            }, 
+            },
             {},
             {
                 sort:{datetime:-1}
@@ -238,15 +238,15 @@ export class LogController{
 
         let LastLogRequest = Log.findOne(
             {
-                Site : { $eq: Site}, 
+                Site : { $eq: Site},
                 datetime:{$lte:start}
-            }, 
+            },
             {},
             {
                 sort:{datetime:-1}
             }
         ).lean().exec();
-        
+
         try {
             let logArray : any = [];
             await Promise.all([LogsRequest, LastLogRequest]).then(async ([logrequest, lastlogrequest])=>{
@@ -265,8 +265,8 @@ export class LogController{
                         logArray.push(tmpLog)
                     }
                 }
-                
-                if(logArray.length === 0){      
+
+                if(logArray.length === 0){
                     if(lastlogrequest !== null && Object.entries(lastlogrequest).length > 0  && downPauseType.indexOf(lastlogrequest.Type.toString()) > -1){
                         let tmpLog = {
                             "_id":lastlogrequest._id,
@@ -284,7 +284,7 @@ export class LogController{
             },reason => {
                 console.log(reason)
             })
-            
+
             return {logs:logArray, rangeDuration:rangeDuration, start:start, end:end};
         } catch(e){
             console.log(e)
@@ -297,63 +297,84 @@ export class LogController{
         try {
             let uptime : any = [];
             let allLogs : any = [];
-            await Promise.all(all_promise).then((promise_result:any) => {
-                promise_result.forEach((result : any) => {
-                    let logsSite = result.logs
-                    let rangeDuration = result.rangeDuration
-                    let start = result.start
-                    let end = result.end
-                    let durationLog : any = 0;
-                    logsSite.sort((a : any, b : any) => a.datetime - b.datetime);                        
-                    logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, site._id)
-                    logsSite.forEach((el : any, idx : any, array : any) => {
-                        if(el === logsSite[logsSite.length-1]){
-                            el.duration = parseInt(moment().format("X")) - el.datetime
-                        } else {
-                            el.duration = logsSite[idx + 1].datetime - el.datetime
+            await Promise.all(all_promise.map(async results => {
+                let result = await results
+                let logsSite = result.logs
+                let rangeDuration = result.rangeDuration
+                let start = result.start
+                let end = result.end
+                let durationLog : any = 0;
+                logsSite.sort((a : any, b : any) => a.datetime - b.datetime);
+                if(logsSite.length > 0 && logsSite[0].type === 2){ //Si j'ai des logs et que le premier est de type UP alors il faudrait essayer de trouver le DOWN précédent
+                    let LogTypesDown = await LogType.find({
+                        logTypeId: { $eq: 1}
+                    }, '_id logTypeId').lean().exec();
+                    let LastLogRequest = await Log.findOne(
+                        {
+                            Site : { $eq: site},
+                            datetime:{$lt:logsSite[0].datetime},
+                            Type: LogTypesDown
+                        },
+                        {},
+                        {
+                            sort:{datetime:-1}
                         }
-                        
-
-                        if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(end) && el.type === 1){
-                            durationLog = null
-                        } else {
-                            // Si le dernier log est un log de pause 
-                            if(el.datetime <= parseInt(start) && el.datetime + el.duration >= parseInt(start) && (el.type === 99) && el == logsSite[logsSite.length-1]){
-                                durationLog = null;
-                            } else if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(start) && el.type === 1){
-                                let duration = el.datetime + el.duration - parseInt(result.start); 
-                                durationLog = durationLog + duration
-                            }else if(el.datetime >= parseInt(start) && el.datetime <= parseInt(end) && el.type === 1){
-                                if(el.takeIntoAccount){
-                                    let duration = el.duration
-                                    if(el.datetime + el.duration > parseInt(end))
-                                        duration = parseInt(end) - el.datetime
-                                    durationLog = durationLog + duration
-                                }
-                                allLogs.push(el)
-                            } 
-                        }
-                        
-
-                    });
-                    
-                    if(parseInt(end) < site.createDatetime) {
+                    ).lean().exec();
+                    if(LastLogRequest !== undefined && LastLogRequest.takeIntoAccount == true){ //Si je trouve bien un down et qu'il faut le prendre en compte alors je l'ajoute au début de mes logs de ma période en cours en modifiant le datetime
+                        logsSite.unshift({
+                            "_id":LastLogRequest._id,
+                            "site":LastLogRequest.Site,
+                            "datetime":start,
+                            "duration":LastLogRequest.duration,
+                            "reason":{"code":LastLogRequest.code,"detail":LastLogRequest.detail},
+                            "type":1, //C'est forcément un down car c'était filtré dans la query en BDD
+                            "comment":LastLogRequest.comment,
+                            "takeIntoAccount":LastLogRequest.takeIntoAccount
+                        });
+                    }
+                }
+                logsSite = this.getLogsWithDayAndInterval(logsSite, custom_days_range, custom_interval, site._id)
+                logsSite.forEach((el : any, idx : any, array : any) => {
+                    if(el === logsSite[logsSite.length-1]){ //Si c'est le dernier log de la liste alors la durée correspond à maintenant moins le début du log
+                        el.duration = parseInt(moment().format("X")) - el.datetime
+                    } else { //Sinon la durée correspond au début du prochain log moins le début de ce log
+                        el.duration = logsSite[idx + 1].datetime - el.datetime
+                    }
+                    //Type 2 = Log UP
+                    //Type 1 = Log DOWN
+                    if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(end) && el.type === 1){ //Si le log est de type DOWN, et que ça commence avant le début de la période et se termine apres alors on ignore. Pourquoi ???
                         durationLog = null
+                    } else {
+                        // Si le dernier log est un log de pause
+                        if(el.datetime <= parseInt(start) && el.datetime + el.duration >= parseInt(start) && (el.type === 99) && el == logsSite[logsSite.length-1]){
+                            durationLog = null;
+                        } else if(el.datetime < parseInt(start) && el.datetime + el.duration > parseInt(start) && el.type === 1){
+                            let duration = el.datetime + el.duration - parseInt(result.start);
+                            durationLog = durationLog + duration
+                        }else if(el.datetime >= parseInt(start) && el.datetime <= parseInt(end) && el.type === 1){
+                            if(el.takeIntoAccount){
+                                let duration = el.duration
+                                if(el.datetime + el.duration > parseInt(end))
+                                    duration = parseInt(end) - el.datetime
+                                durationLog = durationLog + duration
+                            }
+                            allLogs.push(el)
+                        }
                     }
-                    if(durationLog == null){
-                        uptime.push("0.000")
-                    } else if( durationLog === 0) {
-                        uptime.push("100.000")
-                    }else {
-                        let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
-                        uptime.push(tmpUptime.toFixed(3))
-                    }
-
                 });
 
-            },reason => {
-                console.log(reason)
-            });
+                if(parseInt(end) < site.createDatetime) {
+                    durationLog = null
+                }
+                if(durationLog == null){
+                    uptime.push("0.000")
+                } else if( durationLog === 0) {
+                    uptime.push("100.000")
+                }else {
+                    let tmpUptime = ((rangeDuration - durationLog)/rangeDuration)*100
+                    uptime.push(tmpUptime.toFixed(3))
+                }
+            }))
             return {allLogsSite : allLogs, uptimeSite: uptime, site : site}
 
         } catch(err){
@@ -397,7 +418,7 @@ export class LogController{
                             duration = 0
                         else
                             duration = (Math.max(...arrayInterval) - Math.min(...arrayInterval)) - (Math.max(startInterval, startDay) - Math.min(startInterval, startDay)) - (Math.max(endInterval, endLog) - Math.min(endInterval, endLog))
-                        
+
                         if(forbidenDay.length > 0 && forbidenDay.indexOf(moment(startInterval, 'X').tz('Europe/Paris').endOf('day').locale('en').format('dddd').toLowerCase()) > -1){
                             duration = 0
                         }
@@ -438,11 +459,11 @@ export class LogController{
             let endInterval:number
             if(intervals.length > 0){
                 startInterval = parseInt(moment(startElement, 'X').tz('Europe/Paris').add(parseInt(intervals[0]), 'seconds').format('X'))
-                endInterval = parseInt(moment(startElement, 'X').tz('Europe/Paris').add(parseInt(intervals[1]), 'seconds').format('X'))                    
+                endInterval = parseInt(moment(startElement, 'X').tz('Europe/Paris').add(parseInt(intervals[1]), 'seconds').format('X'))
 
                 if(endInterval > end)
                     endInterval = end
-                
+
                 if(startInterval > end)
                     startInterval = end
 
@@ -453,7 +474,7 @@ export class LogController{
             let duration:number
             if(startInterval < start)
                 startInterval  = start
-                
+
             duration = endInterval - startInterval
 
             total = total + duration
