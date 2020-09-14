@@ -363,6 +363,7 @@ export class LogController{
                     }
                 });
 
+                
                 if(parseInt(end) < site.createDatetime) {
                     durationLog = null
                 }
