@@ -38,7 +38,7 @@ export class SiteController{
         try {
             let account = await Account.findOne({_id:req.body.account});
             let siteToAdd:any = {name : req.body.name, url : req.body.url, createDatetime : moment().format("X"), Account : account!._id, status:1, NotificationGroup: req.body.notificationgroup}
-            if(req.body.notificationgroup === "0")
+            if(req.body.notificationgroup == "0" || req.body.notificationgroup == undefined)
                 siteToAdd = {name : req.body.name, url : req.body.url, createDatetime : moment().format("X"), Account : account!._id, status:1}
 
             let logtype = await LogType.findOne({logTypeId:98});
