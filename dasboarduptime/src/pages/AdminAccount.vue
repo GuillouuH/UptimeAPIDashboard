@@ -1,10 +1,10 @@
 <template>
-    <div id="adminaccount">   
+    <div id="adminaccount">
         <AdminHeader></AdminHeader>
         <div class="container-fluid m-2">
             <AdminBreadcrumb :data="breadcrumb"></AdminBreadcrumb>
             <div class="card border-primary p-4">
-                Adinistration des comptes
+                Administration des comptes
             </div>
         </div>
     </div>
