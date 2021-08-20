@@ -25,8 +25,8 @@ export class SiteController{
     public async editSite (req: Request, res: Response) {        
         try {
             let request:any = {name:req.body.name, url:req.body.url, Account:req.body.account, NotificationGroup: req.body.notificationgroup};
-            if(req.body.notificationgroup === "0")
-                request = {name:req.body.name, url:req.body.url, Account:req.body.account};
+            if(req.body.notificationgroup == "0")
+                request = {name:req.body.name, url:req.body.url, Account:req.body.account,$unset: {NotificationGroup:1}};
             await Site.findOneAndUpdate({_id:req.body.id}, request).exec();
             res.json({success:true, message : "Update"});
         } catch (err) {

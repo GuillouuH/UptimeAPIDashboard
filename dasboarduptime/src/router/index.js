@@ -22,7 +22,7 @@ const router =  new Router({
             path: '/',
             name: 'Result',
             component: Result,
-            meta: { 
+            meta: {
                 requiresAuth: true
             }
         },
@@ -31,7 +31,7 @@ const router =  new Router({
             name: 'Details',
             component: Details,
             props: true,
-            meta: { 
+            meta: {
                 requiresAuth: true
             }
         },
@@ -39,7 +39,7 @@ const router =  new Router({
             path: '/account/:id/:year',
             name: 'History',
             component:Result,
-            meta: { 
+            meta: {
                 requiresAuth: true
             }
         },
@@ -47,7 +47,7 @@ const router =  new Router({
             path: '/account/:id/:year',
             name: 'Account',
             component:Result,
-            meta: { 
+            meta: {
                 requiresAuth: true
             }
         },
@@ -55,7 +55,7 @@ const router =  new Router({
             path: '/dashboard/:year/:id/',
             name: 'Dashboard',
             component:Dashboard,
-            meta: { 
+            meta: {
                 requiresAuth: true
             }
         },
@@ -63,7 +63,7 @@ const router =  new Router({
             path: '/admin/',
             name: 'Admin',
             component:Admin,
-            meta: { 
+            meta: {
                 requiresAuth: true
             }
         },
@@ -71,10 +71,10 @@ const router =  new Router({
             path: '/admin/sites',
             name: 'AdminSite',
             component:AdminSite,
-            meta: { 
+            meta: {
                 requiresAuth: true,
                 breadcrumb : [
-                    {name:'Acceuil', link:Admin},
+                    {name:'Accueil', link:Admin},
                     {name:'Sites'}
                 ]
             }
@@ -83,10 +83,10 @@ const router =  new Router({
             path: '/admin/accounts',
             name: 'AdminAccount',
             component:AdminAccount,
-            meta: { 
+            meta: {
                 requiresAuth: true,
                 breadcrumb : [
-                    {name:'Acceuil', link:Admin},
+                    {name:'Accueil', link:Admin},
                     {name:'Comptes'}
                 ]
             }
@@ -95,10 +95,10 @@ const router =  new Router({
             path: '/admin/users',
             name: 'AdminUser',
             component:AdminUser,
-            meta: { 
+            meta: {
                 requiresAuth: true,
                 breadcrumb : [
-                    {name:'Acceuil', link:Admin},
+                    {name:'Accueil', link:Admin},
                     {name:'Utilisateurs'}
                 ]
             }
@@ -107,10 +107,10 @@ const router =  new Router({
             path: '/admin/notifications',
             name: 'AdminNotifications',
             component:AdminNotification,
-            meta: { 
+            meta: {
                 requiresAuth: true,
                 breadcrumb : [
-                    {name:'Acceuil', link:Admin},
+                    {name:'Accueil', link:Admin},
                     {name:'Notifications'}
                 ]
             }
@@ -119,7 +119,7 @@ const router =  new Router({
             path: '/admin/myaccount',
             name: 'MyAccount',
             component: AdminMyAccount,
-            meta: { 
+            meta: {
                 requiresAuth: true
             }
         },
@@ -127,7 +127,7 @@ const router =  new Router({
             path: '/login',
             name: 'Login',
             component: Login,
-            meta: { 
+            meta: {
                 requiresAuth: false
             }
         },

@@ -136,7 +136,7 @@ export default {
                         siteConcerned.url = this.siteEdited.url;
                         siteConcerned.Account = this.siteEdited.account;
                         siteConcerned.NotificationGroup = this.siteEdited.notificationgroup;
-                        this.message.text = "Site modifié avec succés";
+                        this.message.text = "Site modifié avec succès";
                         this.message.type = "success";
                     }
                     this.$refs.toastComponent.openToast();
@@ -156,7 +156,7 @@ export default {
                         $('.modal').modal('hide');
                         this.selectedAccount = this.siteEdited.account;
                         this.modifySelectedAccount();
-                        this.message.text = "Site ajouté avec succés";
+                        this.message.text = "Site ajouté avec succès";
                         this.message.type = "success";
                     }
                     this.$refs.toastComponent.openToast();
@@ -172,7 +172,7 @@ export default {
                 errors.push("Vous devez renseigner une url");
             if(this.siteEdited.account === "0")
                 errors.push("Vous devez lier le site à un compte");
-            
+
             if(errors.length > 0){
                 alert(errors.join("\n"));
                 return false;
@@ -188,7 +188,7 @@ export default {
                 then(response => {
                     if(response.data.success){
                         this.modifySelectedAccount();
-                        this.message.text = "Site supprimé avec succés";
+                        this.message.text = "Site supprimé avec succès";
                         this.message.type = "success";
                     } else {
                         this.message.text = "Une erreur est survenue";
