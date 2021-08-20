@@ -52,7 +52,7 @@ export default {
             let monthRange = months.join('-');
             let range = monthRange;
             this.range = range;
-        },  
+        },
         getMonth: function(){
             let months = Array();
 
@@ -61,7 +61,7 @@ export default {
                 this.currentDate = parseInt(moment(this.$route.params.year, 'YYYY').endOf('year').format('X'));
 
             let startMonth = parseInt(moment(this.currentDate, 'X').startOf('month').format('X'));
-            
+
             let startYear = moment(this.currentDate, 'X').startOf('year').format('X');
             if(this.currentStartDate !== null)
                 startYear = this.currentStartDate;
@@ -74,9 +74,9 @@ export default {
                 months.unshift(name);
                 dateInTheMonth = startMonth-1;
             }
-            
+
             this.months = months
-        }, 
+        },
         searchForLongerLog: function(log, mode){
             let date = 0;
             let duration = 0;
@@ -105,14 +105,14 @@ export default {
             else
                 maxLogDown.push({"date":dateInSecond, "duration":this.convertSecondIntoTime(duration), "timestamp":duration});
             return maxLogDown;
-        }, 
+        },
         convertSecondIntoTime: function(second){
             let time = 0;
             let days = moment.duration(second, 'seconds').days();
             let hours = moment.duration(second, 'seconds').hours();
             let minutes = moment.duration(second, 'seconds').minutes();
             let seconds = moment.duration(second, 'seconds').seconds();
-            
+
             if(days == "0" && hours == "0" && minutes == "0" )
                 time = seconds+" s";
             else if(days == "0" && hours == "0")
@@ -123,7 +123,7 @@ export default {
                 time = days+"j"+hours+"h"+minutes+"m"+seconds+"s";
 
             return time;
-        }, 
+        },
         getUptimeRequest: async function(data, url){
             let vm = this;
             var results = [];
@@ -139,11 +139,11 @@ export default {
                     for(var j in logs)
                         if(logs[j].type == 1)
                             logsDuration.push(logs[j].duration);
-                    
+
                     if(logsDuration.length > 0){
                         var cumul = vm.convertSecondIntoTime(logsDuration.reduce(reducer));
                         var secondeCumul = logsDuration.reduce(reducer);
-                    }else{ 
+                    }else{
                         var cumul = 0;
                         var secondeCumul = 0;
                     }
@@ -153,30 +153,30 @@ export default {
                     let longerLogDown = vm.searchForLongerLog(monitors[i].logs, 1);
                     var total = 0;
                     var numberRange = 0
-                    
+
                     for(var k in ranges){
                         if(ranges[k] !== "0.000"){
                             numberRange = numberRange + 1;
                             total = total + parseFloat(ranges[k]);
                         }
                     }
-                    
+
                     if(vm.searchForLongerLog(logs, 2).length == 0){
                         vm.allLogs = "empty";
                     }else{
                         vm.allLogs = vm.searchForLongerLog(logs, 2);
-                    }     
+                    }
                     if(total === 0)
                         ranges.unshift("0.000");
-                    else 
+                    else
                         ranges.unshift((total/numberRange).toFixed(3));
-                    
+
 
                     let tmpAccountName = monitors[i].accountname.split('@');
                     results.push({
                         "status":monitors[i].status,
                         "id":monitors[i].id_object,
-                        "name":monitors[i].friendly_name+" - "+tmpAccountName[0],
+                        "name":monitors[i].friendly_name,
                         "ranges": ranges.map(Number),
                         "cumul":cumul,
                         "cumulSeconde":secondeCumul,
@@ -188,13 +188,12 @@ export default {
                         "isVisible":true,
                         "ssl":monitors[i].ssl,
                         "lighthouse":monitors[i].lighthouse,
-                        "screenshot":monitors[i].screenshot,
-                        "isVisible":true
+                        "screenshot":monitors[i].screenshot
                     });
                     vm.processing = false;
-                }      
+                }
             });
-            
+
             localStorage.setItem("uptimeRequest", JSON.stringify(results));
             return results;
         },
@@ -206,8 +205,8 @@ export default {
             let logs_count = 0;
             let logs_cumul_seconde = 0;
             if(from === "result")
-                vm.average.push("Moyenne") 
-            results.forEach(function(element) { 
+                vm.average.push("Moyenne")
+            results.forEach(function(element) {
                 if(element["isVisible"]){
                     ranges.push(element["ranges"]);
                     logs_count += element.logscount;
@@ -226,8 +225,8 @@ export default {
                     if(arrayElement.length != 0){
                         vm.average.push((arrayElement.reduce(reducer)/arrayElement.length).toFixed(3));
                     }
-                    else 
-                        vm.average.push('nc');              
+                    else
+                        vm.average.push('nc');
                 }
             } else {
                 vm.average = [];
@@ -235,8 +234,8 @@ export default {
 
             var cumul_time = vm.convertSecondIntoTime(logs_cumul_seconde);
             if(from === "result")
-                vm.average.push('',logs_count,'','');  
-                
+                vm.average.push('',logs_count,'','');
+
             if(from === "dashboard") {
                 let totalAverage = 0;
                 for(var k in vm.average){
